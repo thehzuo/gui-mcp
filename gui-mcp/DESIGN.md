@@ -12,3 +12,7 @@ The implemented scope is the v0.1 static-first Python port:
 - in-memory artifact storage
 - `ui://gui2/artifacts/{artifact_id}` resource-shaped delivery
 - pytest coverage for schema, rendering, security, patching, tools, and exports
+
+The v0.2 upgrade adds Chrome-first Studio Sheet artifacts, sandboxed prototype/editor
+sections, deterministic interaction primitives, twenty richer pattern families, and
+Playwright Chromium smoke coverage.

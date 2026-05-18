@@ -46,7 +46,7 @@ def test_pattern_search_and_schema() -> None:
     found = search_artifact_patterns_handler(
         SearchArtifactPatternsInput(query="review", use_case="code_review")
     )
-    assert [pattern.id for pattern in found.patterns] == ["code_review_explainer"]
+    assert "code_review_explainer" in [pattern.id for pattern in found.patterns]
     schema = get_artifact_schema_handler(GetArtifactSchemaInput(pattern_id="implementation_plan"))
     assert schema.example_minimal["artifact"] == "implementation_plan"
     assert "properties" in schema.schema_

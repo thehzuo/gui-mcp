@@ -1,0 +1,21 @@
+{
+  "v": "0.2",
+  "artifact": "clickable_flow",
+  "title": "Sidebar Reorder Flow",
+  "sections": [
+    {
+      "kind": "prototype_flow",
+      "title": "Four Screen Flow",
+      "screens": [
+        { "id": "home", "title": "Home", "body": "The sidebar shows pinned workspaces.", "cta": "Start drag" },
+        { "id": "drag", "title": "Dragging", "body": "A drop slot appears with a precise insertion cue.", "cta": "Drop item" },
+        { "id": "saved", "title": "Saved", "body": "The new order is persisted and can be copied out." }
+      ],
+      "links": [
+        { "from": "home", "to": "drag", "label": "Drag item" },
+        { "from": "drag", "to": "saved", "label": "Drop" }
+      ]
+    }
+  ],
+  "interactions": [{ "kind": "tab" }]
+}

@@ -10,4 +10,12 @@ if str(SRC) not in sys.path:
 
 
 def example_paths() -> list[Path]:
+    return sorted((ROOT / "examples").rglob("*.json"))
+
+
+def v01_example_paths() -> list[Path]:
     return sorted((ROOT / "examples").glob("*.json"))
+
+
+def v02_example_paths() -> list[Path]:
+    return sorted((ROOT / "examples" / "v0_2").glob("*.json"))

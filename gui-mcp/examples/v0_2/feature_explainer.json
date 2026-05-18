@@ -1,0 +1,16 @@
+{
+  "v": "0.2",
+  "artifact": "feature_explainer",
+  "title": "How Rate Limiting Works",
+  "sections": [
+    {
+      "kind": "tabs",
+      "title": "Explainer",
+      "tabs": [
+        { "id": "tldr", "label": "TL;DR", "body": "Requests are keyed by account and route group." },
+        { "id": "path", "label": "Request Path", "body": "Middleware loads the quota, increments usage, and emits headers." },
+        { "id": "faq", "label": "FAQ", "body": "Burst limits are independent from long-window quotas." }
+      ]
+    }
+  ]
+}

@@ -9,6 +9,7 @@ This repo implements `gui2-artifact-mcp-py`, a Python MCP server that compiles c
 
 - Install: `uv sync`
 - Test: `uv run pytest`
+- Chrome smoke tests: `uv run pytest tests/test_chromium_smoke.py`
 - Lint: `uv run ruff check .`
 - Dev server: `uv run gui2-artifact-mcp`
 - Render example: `uv run python scripts/render_example.py examples/implementation_plan.json /tmp/gui2-plan.html`
@@ -19,6 +20,8 @@ This repo implements `gui2-artifact-mcp-py`, a Python MCP server that compiles c
 - Validate all external inputs with Pydantic.
 - Escape all model-provided text before rendering HTML.
 - Do not render arbitrary model-provided JavaScript.
+- Keep v0.2 interactions declarative and backed by deterministic runtime code.
+- Prototype/editor sections must use sandboxed iframe `srcdoc` without `allow-same-origin`.
 - Keep the renderer deterministic.
 - Add or update tests for behavior changes.
 - Keep dependencies minimal.

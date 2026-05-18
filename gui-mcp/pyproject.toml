@@ -16,12 +16,14 @@ gui2-render-example = "gui2_artifact_mcp.cli:render_example_main"
 
 [dependency-groups]
 dev = [
+  "playwright>=1.45",
   "pytest>=8",
   "ruff>=0.5",
 ]
 
 [project.optional-dependencies]
 dev = [
+  "playwright>=1.45",
   "pytest>=8",
   "ruff>=0.5",
 ]

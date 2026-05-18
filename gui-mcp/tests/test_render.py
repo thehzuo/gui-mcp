@@ -74,3 +74,87 @@ def test_local_runtime_is_known_static_script() -> None:
     ).html
     assert "data-gui2-action=\"copy-json\"" in html
     assert "document.addEventListener" in html
+
+
+def test_v02_includes_runtime_and_sandboxed_iframe() -> None:
+    spec = ArtifactSpec.model_validate(
+        {
+            "v": "0.2",
+            "artifact": "clickable_flow",
+            "title": "Sandbox",
+            "sections": [
+                {
+                    "kind": "prototype_flow",
+                    "title": "Flow",
+                    "screens": [
+                        {"id": "a", "title": "A", "body": "First"},
+                        {"id": "b", "title": "B", "body": "Second"},
+                    ],
+                    "links": [{"from": "a", "to": "b", "label": "Next"}],
+                }
+            ],
+        }
+    )
+    html = render_artifact_to_html(spec).html
+    assert 'sandbox="allow-scripts"' in html
+    assert "allow-same-origin" not in html
+    assert "data-prototype-target" in html
+    assert 'data-kind="slide_deck"' not in html
+    assert "document.addEventListener" in html
+
+
+def test_v02_sections_render_fallback_content() -> None:
+    spec = ArtifactSpec.model_validate(
+        {
+            "v": "0.2",
+            "artifact": "feature_explainer",
+            "title": "Fallbacks",
+            "sections": [
+                {
+                    "kind": "tabs",
+                    "title": "Tabs",
+                    "tabs": [
+                        {"id": "one", "label": "One", "body": "Visible if scripts fail."},
+                        {"id": "two", "label": "Two", "body": "Also present in the HTML."},
+                    ],
+                },
+                {
+                    "kind": "filterable_collection",
+                    "title": "Items",
+                    "items": [{"id": "a", "title": "Alpha", "body": "Filterable text"}],
+                },
+            ],
+        }
+    )
+    html = render_artifact_to_html(spec).html
+    assert "Visible if scripts fail." in html
+    assert "Also present in the HTML." in html
+    assert "Filterable text" in html
+    assert "data-gui2-filter" in html
+
+
+def test_v02_log_details_use_native_collapsible() -> None:
+    spec = ArtifactSpec.model_validate(
+        {
+            "v": "0.2",
+            "artifact": "incident_report",
+            "title": "Incident",
+            "sections": [
+                {
+                    "kind": "log_timeline",
+                    "title": "Timeline",
+                    "events": [
+                        {
+                            "timestamp": "12:00",
+                            "level": "error",
+                            "message": "Failure",
+                            "detail": "stack trace",
+                        }
+                    ],
+                }
+            ],
+        }
+    )
+    html = render_artifact_to_html(spec).html
+    assert "<details>" in html
+    assert "<summary>Details</summary>" in html

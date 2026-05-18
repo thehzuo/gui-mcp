@@ -1,0 +1,16 @@
+{
+  "v": "0.2",
+  "artifact": "pr_author_writeup",
+  "title": "Queue Delivery PR Writeup",
+  "sections": [
+    {
+      "kind": "tabs",
+      "title": "Reviewer Tour",
+      "tabs": [
+        { "id": "why", "label": "Why", "body": "Notification delivery moves to a queue to reduce request latency." },
+        { "id": "before-after", "label": "Before/After", "body": "Before: synchronous provider call. After: enqueue and worker dispatch." },
+        { "id": "focus", "label": "Review Focus", "body": "Focus on retry behavior, idempotency, and observability." }
+      ]
+    }
+  ]
+}

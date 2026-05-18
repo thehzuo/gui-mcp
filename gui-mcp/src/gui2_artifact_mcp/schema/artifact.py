@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Literal, TypeAlias
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from gui2_artifact_mcp.schema.limits import (
     MAX_ACTIONS,
     MAX_BODY_LENGTH,
     MAX_CODE_LENGTH,
     MAX_COLUMNS,
+    MAX_INTERACTIONS,
     MAX_ROWS,
     MAX_SECTIONS,
     MAX_SOURCES,
@@ -25,6 +26,40 @@ ArtifactKind: TypeAlias = Literal[
     "design_variant_grid",
     "research_report",
     "custom_editor",
+    "approach_comparison",
+    "visual_direction_board",
+    "implementation_handoff",
+    "pr_review_workspace",
+    "pr_author_writeup",
+    "module_map",
+    "design_system_reference",
+    "component_variant_matrix",
+    "animation_tuner",
+    "clickable_flow",
+    "diagram_sheet",
+    "annotated_flowchart",
+    "slide_deck",
+    "feature_explainer",
+    "concept_explainer",
+    "status_report",
+    "incident_report",
+    "triage_board",
+    "feature_flag_editor",
+    "prompt_tuner",
+]
+
+InteractionKind: TypeAlias = Literal[
+    "tab",
+    "filter",
+    "collapse",
+    "copy",
+    "slider",
+    "stepper",
+    "keyboard_nav",
+    "inspect_node",
+    "drag_reorder",
+    "toggle_with_dependencies",
+    "live_template_render",
 ]
 
 
@@ -253,6 +288,269 @@ class SourceListSection(ArtifactBaseModel):
     sources: list[ArtifactSource] = Field(default_factory=list, max_length=MAX_SOURCES)
 
 
+class InteractionSpec(ArtifactBaseModel):
+    kind: InteractionKind
+    target: str | None = Field(default=None, max_length=120)
+
+
+class SandboxConfig(ArtifactBaseModel):
+    allow_scripts: Literal[True] = True
+    allow_same_origin: Literal[False] = False
+    allow_network: Literal[False] = False
+
+
+class SplitViewSection(ArtifactBaseModel):
+    kind: Literal["split_view"]
+    title: str = Field(max_length=120)
+    left_title: str = Field(max_length=120)
+    left_body: str = Field(max_length=MAX_BODY_LENGTH)
+    right_title: str = Field(max_length=120)
+    right_body: str = Field(max_length=MAX_BODY_LENGTH)
+    ratio: Literal["balanced", "left", "right"] = "balanced"
+
+
+class TabItem(ArtifactBaseModel):
+    id: str = Field(pattern=r"^[a-zA-Z_][a-zA-Z0-9_\-]*$", max_length=64)
+    label: str = Field(max_length=80)
+    body: str = Field(max_length=MAX_BODY_LENGTH)
+    badge: str | None = Field(default=None, max_length=40)
+    active: bool = False
+
+
+class TabsSection(ArtifactBaseModel):
+    kind: Literal["tabs"]
+    title: str = Field(max_length=120)
+    tabs: list[TabItem] = Field(min_length=1, max_length=12)
+
+
+class CollectionItem(ArtifactBaseModel):
+    id: str = Field(max_length=64)
+    title: str = Field(max_length=160)
+    body: str = Field(max_length=1_200)
+    tags: list[str] = Field(default_factory=list, max_length=12)
+    tone: Tone = "neutral"
+
+
+class FilterableCollectionSection(ArtifactBaseModel):
+    kind: Literal["filterable_collection"]
+    title: str = Field(max_length=120)
+    placeholder: str = Field(default="Filter", max_length=80)
+    items: list[CollectionItem] = Field(min_length=1, max_length=80)
+
+
+class InspectorNode(ArtifactBaseModel):
+    id: str = Field(pattern=r"^[a-zA-Z_][a-zA-Z0-9_\-]*$", max_length=64)
+    label: str = Field(max_length=120)
+    description: str = Field(max_length=600)
+    tone: Tone = "neutral"
+    x: int = Field(default=50, ge=0, le=100)
+    y: int = Field(default=50, ge=0, le=100)
+
+
+class InspectorEdge(ArtifactBaseModel):
+    from_: str = Field(alias="from", max_length=64)
+    to: str = Field(max_length=64)
+    label: str | None = Field(default=None, max_length=120)
+
+
+class InspectorDiagramSection(ArtifactBaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    kind: Literal["inspector_diagram"]
+    title: str = Field(max_length=120)
+    nodes: list[InspectorNode] = Field(min_length=1, max_length=30)
+    edges: list[InspectorEdge] = Field(default_factory=list, max_length=60)
+
+    @model_validator(mode="after")
+    def validate_edge_refs(self) -> InspectorDiagramSection:
+        node_ids = {node.id for node in self.nodes}
+        for edge in self.edges:
+            if edge.from_ not in node_ids or edge.to not in node_ids:
+                raise ValueError("Inspector diagram edges must reference existing node ids.")
+        return self
+
+
+class MockScreen(ArtifactBaseModel):
+    id: str = Field(pattern=r"^[a-zA-Z_][a-zA-Z0-9_\-]*$", max_length=64)
+    title: str = Field(max_length=120)
+    body: str = Field(max_length=2_000)
+    cta: str | None = Field(default=None, max_length=80)
+
+
+class PrototypeLink(ArtifactBaseModel):
+    from_: str = Field(alias="from", max_length=64)
+    to: str = Field(max_length=64)
+    label: str = Field(max_length=80)
+
+
+class PrototypeFlowSection(ArtifactBaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    kind: Literal["prototype_flow"]
+    title: str = Field(max_length=120)
+    screens: list[MockScreen] = Field(min_length=1, max_length=12)
+    links: list[PrototypeLink] = Field(default_factory=list, max_length=40)
+    sandbox: SandboxConfig = Field(default_factory=SandboxConfig)
+
+    @model_validator(mode="after")
+    def validate_screen_links(self) -> PrototypeFlowSection:
+        screen_ids = {screen.id for screen in self.screens}
+        for link in self.links:
+            if link.from_ not in screen_ids or link.to not in screen_ids:
+                raise ValueError("Prototype links must reference existing screen ids.")
+        return self
+
+
+class AnimationPreset(ArtifactBaseModel):
+    id: str = Field(max_length=64)
+    label: str = Field(max_length=120)
+    duration_ms: int = Field(default=260, ge=50, le=5_000)
+    easing: str = Field(default="cubic-bezier(.2,.8,.2,1)", max_length=120)
+    description: str | None = Field(default=None, max_length=500)
+
+
+class AnimationControlsSection(ArtifactBaseModel):
+    kind: Literal["animation_controls"]
+    title: str = Field(max_length=120)
+    preview_label: str = Field(default="Preview", max_length=120)
+    presets: list[AnimationPreset] = Field(min_length=1, max_length=8)
+    sandbox: SandboxConfig = Field(default_factory=SandboxConfig)
+
+
+class TokenItem(ArtifactBaseModel):
+    name: str = Field(max_length=120)
+    value: str = Field(max_length=240)
+    description: str | None = Field(default=None, max_length=400)
+
+
+class TokenGroup(ArtifactBaseModel):
+    title: str = Field(max_length=120)
+    tokens: list[TokenItem] = Field(min_length=1, max_length=40)
+
+
+class TokenSheetSection(ArtifactBaseModel):
+    kind: Literal["token_sheet"]
+    title: str = Field(max_length=120)
+    groups: list[TokenGroup] = Field(min_length=1, max_length=12)
+
+
+class ComponentVariantSpec(ArtifactBaseModel):
+    id: str = Field(max_length=64)
+    name: str = Field(max_length=120)
+    state: str = Field(max_length=80)
+    intent: str = Field(max_length=80)
+    notes: str | None = Field(default=None, max_length=500)
+    selected: bool = False
+
+
+class ComponentMatrixSection(ArtifactBaseModel):
+    kind: Literal["component_matrix"]
+    title: str = Field(max_length=120)
+    component: str = Field(max_length=120)
+    variants: list[ComponentVariantSpec] = Field(min_length=1, max_length=48)
+
+
+class Slide(ArtifactBaseModel):
+    id: str = Field(max_length=64)
+    title: str = Field(max_length=120)
+    body: str = Field(max_length=2_000)
+    kicker: str | None = Field(default=None, max_length=80)
+    notes: str | None = Field(default=None, max_length=1_000)
+
+
+class SlideDeckSection(ArtifactBaseModel):
+    kind: Literal["slide_deck"]
+    title: str = Field(max_length=120)
+    slides: list[Slide] = Field(min_length=1, max_length=24)
+
+
+class ChartDatum(ArtifactBaseModel):
+    label: str = Field(max_length=120)
+    value: float
+    tone: Tone = "neutral"
+
+
+class ChartPanelSection(ArtifactBaseModel):
+    kind: Literal["chart_panel"]
+    title: str = Field(max_length=120)
+    chart_type: Literal["bar", "progress"] = "bar"
+    data: list[ChartDatum] = Field(min_length=1, max_length=24)
+
+
+class LogEvent(ArtifactBaseModel):
+    timestamp: str = Field(max_length=80)
+    level: Literal["debug", "info", "warning", "error"] = "info"
+    message: str = Field(max_length=400)
+    detail: str | None = Field(default=None, max_length=2_000)
+
+
+class LogTimelineSection(ArtifactBaseModel):
+    kind: Literal["log_timeline"]
+    title: str = Field(max_length=120)
+    events: list[LogEvent] = Field(min_length=1, max_length=80)
+
+
+class DependencyToggle(ArtifactBaseModel):
+    id: str = Field(pattern=r"^[a-zA-Z_][a-zA-Z0-9_\-]*$", max_length=64)
+    label: str = Field(max_length=120)
+    description: str | None = Field(default=None, max_length=500)
+    enabled: bool = False
+    depends_on: list[str] = Field(default_factory=list, max_length=8)
+    warning: str | None = Field(default=None, max_length=300)
+
+
+class DependencyToggleListSection(ArtifactBaseModel):
+    kind: Literal["dependency_toggle_list"]
+    title: str = Field(max_length=120)
+    toggles: list[DependencyToggle] = Field(min_length=1, max_length=50)
+    sandbox: SandboxConfig = Field(default_factory=SandboxConfig)
+
+    @model_validator(mode="after")
+    def validate_toggle_dependencies(self) -> DependencyToggleListSection:
+        ids = {toggle.id for toggle in self.toggles}
+        for toggle in self.toggles:
+            missing = set(toggle.depends_on) - ids
+            if missing:
+                raise ValueError("Toggle dependencies must reference existing toggle ids.")
+        return self
+
+
+class PromptVariable(ArtifactBaseModel):
+    name: str = Field(pattern=r"^[a-zA-Z_][a-zA-Z0-9_]*$", max_length=64)
+    label: str = Field(max_length=120)
+    value: str = Field(max_length=1_000)
+
+
+class PromptSample(ArtifactBaseModel):
+    id: str = Field(max_length=64)
+    label: str = Field(max_length=120)
+    input: str = Field(max_length=2_000)
+    expected: str | None = Field(default=None, max_length=2_000)
+
+
+class PromptTunerSection(ArtifactBaseModel):
+    kind: Literal["prompt_tuner"]
+    title: str = Field(max_length=120)
+    template: str = Field(max_length=MAX_BODY_LENGTH)
+    variables: list[PromptVariable] = Field(default_factory=list, max_length=20)
+    samples: list[PromptSample] = Field(default_factory=list, max_length=12)
+    sandbox: SandboxConfig = Field(default_factory=SandboxConfig)
+
+
+class CopyableAsset(ArtifactBaseModel):
+    id: str = Field(max_length=64)
+    title: str = Field(max_length=120)
+    kind: Literal["svg", "html", "css", "json", "markdown", "text"] = "text"
+    content: str = Field(max_length=MAX_BODY_LENGTH)
+    description: str | None = Field(default=None, max_length=500)
+
+
+class CopyableAssetGridSection(ArtifactBaseModel):
+    kind: Literal["copyable_asset_grid"]
+    title: str = Field(max_length=120)
+    assets: list[CopyableAsset] = Field(min_length=1, max_length=24)
+
+
 ArtifactSection: TypeAlias = Annotated[
     SummarySection
     | NarrativeSection
@@ -268,7 +566,21 @@ ArtifactSection: TypeAlias = Annotated[
     | VariantGridSection
     | EditableTableSection
     | BoardSection
-    | SourceListSection,
+    | SourceListSection
+    | SplitViewSection
+    | TabsSection
+    | FilterableCollectionSection
+    | InspectorDiagramSection
+    | PrototypeFlowSection
+    | AnimationControlsSection
+    | TokenSheetSection
+    | ComponentMatrixSection
+    | SlideDeckSection
+    | ChartPanelSection
+    | LogTimelineSection
+    | DependencyToggleListSection
+    | PromptTunerSection
+    | CopyableAssetGridSection,
     Field(discriminator="kind"),
 ]
 
@@ -305,7 +617,7 @@ ArtifactAction: TypeAlias = Annotated[
 
 
 class ArtifactSpec(ArtifactBaseModel):
-    v: Literal["0.1"] = "0.1"
+    v: Literal["0.1", "0.2"] = "0.1"
     artifact: ArtifactKind
     title: str = Field(min_length=1, max_length=MAX_TITLE_LENGTH)
     subtitle: str | None = Field(default=None, max_length=240)
@@ -314,5 +626,6 @@ class ArtifactSpec(ArtifactBaseModel):
     theme: Theme = "neutral"
     sections: list[ArtifactSection] = Field(min_length=1, max_length=MAX_SECTIONS)
     actions: list[ArtifactAction] = Field(default_factory=list, max_length=MAX_ACTIONS)
+    interactions: list[InteractionSpec] = Field(default_factory=list, max_length=MAX_INTERACTIONS)
     sources: list[ArtifactSource] = Field(default_factory=list, max_length=MAX_SOURCES)
     metadata: dict[str, Any] = Field(default_factory=dict)

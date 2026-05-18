@@ -58,4 +58,36 @@ def _section_lines(section: Any) -> list[str]:
         return lines
     if kind == "source_list":
         return [f"- {source.title}: {source.url or ''}" for source in section.sources]
+    if kind == "split_view":
+        return [f"### {section.left_title}", section.left_body, f"### {section.right_title}", section.right_body]
+    if kind == "tabs":
+        return [f"- **{tab.label}:** {tab.body}" for tab in section.tabs]
+    if kind == "filterable_collection":
+        return [f"- **{item.title}:** {item.body}" for item in section.items]
+    if kind == "inspector_diagram":
+        return [f"- {node.id}: {node.label} - {node.description}" for node in section.nodes]
+    if kind == "prototype_flow":
+        return [f"- {screen.id}: {screen.title}" for screen in section.screens]
+    if kind == "animation_controls":
+        return [f"- {preset.label}: {preset.duration_ms}ms" for preset in section.presets]
+    if kind == "token_sheet":
+        lines = []
+        for group in section.groups:
+            lines.append(f"### {group.title}")
+            lines.extend(f"- `{token.name}` = `{token.value}`" for token in group.tokens)
+        return lines
+    if kind == "component_matrix":
+        return [f"- {variant.name}: {variant.intent} / {variant.state}" for variant in section.variants]
+    if kind == "slide_deck":
+        return [f"- {slide.title}: {slide.body}" for slide in section.slides]
+    if kind == "chart_panel":
+        return [f"- {datum.label}: {datum.value}" for datum in section.data]
+    if kind == "log_timeline":
+        return [f"- {event.timestamp} [{event.level}] {event.message}" for event in section.events]
+    if kind == "dependency_toggle_list":
+        return [f"- [{'x' if toggle.enabled else ' '}] {toggle.label}" for toggle in section.toggles]
+    if kind == "prompt_tuner":
+        return ["```text", section.template, "```"]
+    if kind == "copyable_asset_grid":
+        return [f"- {asset.title} ({asset.kind})" for asset in section.assets]
     return []

@@ -3,21 +3,36 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from gui2_artifact_mcp.render.runtime import render_sandbox_runtime_js
 from gui2_artifact_mcp.schema.artifact import (
+    AnimationControlsSection,
     BoardSection,
     CalloutSection,
+    ChartPanelSection,
     ChecklistSection,
     CodeSection,
     ComparisonSection,
+    ComponentMatrixSection,
+    CopyableAssetGridSection,
+    DependencyToggleListSection,
     DiffReviewSection,
     EditableTableSection,
+    FilterableCollectionSection,
     FlowSection,
+    InspectorDiagramSection,
+    LogTimelineSection,
     MatrixSection,
     NarrativeSection,
+    PromptTunerSection,
+    PrototypeFlowSection,
+    SlideDeckSection,
     SourceListSection,
+    SplitViewSection,
     SummarySection,
     TableSection,
+    TabsSection,
     TimelineSection,
+    TokenSheetSection,
     VariantGridSection,
 )
 from gui2_artifact_mcp.schema.tool_io import RenderOptions
@@ -64,6 +79,34 @@ def _render_section_body(section: Any, options: RenderOptions) -> str:
         return render_board(section)
     if isinstance(section, SourceListSection):
         return render_source_list(section)
+    if isinstance(section, SplitViewSection):
+        return render_split_view(section)
+    if isinstance(section, TabsSection):
+        return render_tabs(section)
+    if isinstance(section, FilterableCollectionSection):
+        return render_filterable_collection(section)
+    if isinstance(section, InspectorDiagramSection):
+        return render_inspector_diagram(section)
+    if isinstance(section, PrototypeFlowSection):
+        return render_prototype_flow(section)
+    if isinstance(section, AnimationControlsSection):
+        return render_animation_controls(section)
+    if isinstance(section, TokenSheetSection):
+        return render_token_sheet(section)
+    if isinstance(section, ComponentMatrixSection):
+        return render_component_matrix(section)
+    if isinstance(section, SlideDeckSection):
+        return render_slide_deck(section)
+    if isinstance(section, ChartPanelSection):
+        return render_chart_panel(section)
+    if isinstance(section, LogTimelineSection):
+        return render_log_timeline(section)
+    if isinstance(section, DependencyToggleListSection):
+        return render_dependency_toggle_list(section)
+    if isinstance(section, PromptTunerSection):
+        return render_prompt_tuner(section)
+    if isinstance(section, CopyableAssetGridSection):
+        return render_copyable_asset_grid(section)
     raise TypeError(f"Unsupported section type: {type(section).__name__}")
 
 
@@ -292,12 +335,12 @@ def render_board(section: BoardSection) -> str:
         for card in column.cards:
             body = _paragraphs(card.body or "")
             cards.append(
-                f'<article class="gui2-card gui2-tone-{attr(card.tone)}">'
+                f'<article class="gui2-card gui2-tone-{attr(card.tone)}" draggable="true" data-gui2-drag-card data-gui2-card-id="{attr(card.id)}">'
                 f"<h3>{h(card.title)}</h3>{body}"
                 "</article>"
             )
         columns.append(
-            '<section class="gui2-board-column">'
+            f'<section class="gui2-board-column" data-gui2-drop-zone data-gui2-column-id="{attr(column.id)}">'
             f"<h3>{h(column.title)}</h3>{''.join(cards)}"
             "</section>"
         )
@@ -312,6 +355,295 @@ def render_source_list(section: SourceListSection) -> str:
         note = f'<div class="gui2-muted">{h(source.note)}</div>' if source.note else ""
         items.append(f"<li>{title}{note}</li>")
     return _section_heading(section.title or "Sources") + f'<ol class="gui2-sources">{"".join(items)}</ol>'
+
+
+def render_split_view(section: SplitViewSection) -> str:
+    return (
+        _section_heading(section.title)
+        + f'<div class="gui2-split gui2-split-{attr(section.ratio)}">'
+        + '<article class="gui2-sheet-panel">'
+        + f"<h3>{h(section.left_title)}</h3>{_paragraphs(section.left_body)}</article>"
+        + '<article class="gui2-sheet-panel accent">'
+        + f"<h3>{h(section.right_title)}</h3>{_paragraphs(section.right_body)}</article>"
+        + "</div>"
+    )
+
+
+def render_tabs(section: TabsSection) -> str:
+    active = next((tab.id for tab in section.tabs if tab.active), section.tabs[0].id)
+    controls = []
+    panels = []
+    for tab in section.tabs:
+        badge = f'<span class="gui2-tab-badge">{h(tab.badge)}</span>' if tab.badge else ""
+        selected = "true" if tab.id == active else "false"
+        controls.append(
+            f'<button class="gui2-tab" type="button" data-gui2-tab="{attr(tab.id)}" aria-selected="{selected}">{h(tab.label)}{badge}</button>'
+        )
+        panels.append(
+            f'<article class="gui2-tab-panel" data-gui2-panel="{attr(tab.id)}">'
+            f"<h3>{h(tab.label)}</h3>{_paragraphs(tab.body)}</article>"
+        )
+    return (
+        _section_heading(section.title)
+        + '<div class="gui2-tabs" data-gui2-tabs>'
+        + f'<div class="gui2-tablist" role="tablist">{"".join(controls)}</div>'
+        + f'<div class="gui2-tab-panels">{"".join(panels)}</div>'
+        + "</div>"
+    )
+
+
+def render_filterable_collection(section: FilterableCollectionSection) -> str:
+    items = []
+    for item in section.items:
+        tag_html = "".join(f'<span class="gui2-badge">{h(tag)}</span>' for tag in item.tags)
+        filter_text = " ".join([item.title, item.body, *item.tags]).casefold()
+        items.append(
+            f'<article class="gui2-card gui2-tone-{attr(item.tone)}" data-gui2-filter-item data-gui2-filter-text="{attr(filter_text)}">'
+            f"<h3>{h(item.title)}</h3>{_paragraphs(item.body)}"
+            f'<div class="gui2-chip-row">{tag_html}</div></article>'
+        )
+    return (
+        _section_heading(section.title)
+        + '<div class="gui2-filterable" data-gui2-filter-root>'
+        + f'<label class="gui2-filter-label"><span>Filter</span><input class="gui2-form-input" data-gui2-filter placeholder="{attr(section.placeholder)}"></label>'
+        + f'<div class="gui2-card-grid">{"".join(items)}</div>'
+        + "</div>"
+    )
+
+
+def render_inspector_diagram(section: InspectorDiagramSection) -> str:
+    nodes = []
+    for node in section.nodes:
+        nodes.append(
+            f'<button class="gui2-diagram-node gui2-tone-{attr(node.tone)}" type="button" data-gui2-inspect data-gui2-title="{attr(node.label)}" data-gui2-body="{attr(node.description)}" style="left:{node.x}%;top:{node.y}%;">'
+            f"{h(node.label)}</button>"
+        )
+    edges = "".join(
+        f'<li>{h(edge.from_)} -> {h(edge.to)}{": " + h(edge.label) if edge.label else ""}</li>'
+        for edge in section.edges
+    )
+    return (
+        _section_heading(section.title)
+        + '<div class="gui2-diagram-layout" data-gui2-diagram>'
+        + f'<div class="gui2-diagram-canvas">{"".join(nodes)}</div>'
+        + '<aside class="gui2-inspector"><div class="gui2-label">Inspector</div>'
+        + '<h3 data-gui2-inspector-title></h3><p data-gui2-inspector-body class="gui2-muted"></p>'
+        + f'<ul class="gui2-list">{edges}</ul></aside></div>'
+    )
+
+
+def render_prototype_flow(section: PrototypeFlowSection) -> str:
+    screens = []
+    for screen in section.screens:
+        links = [
+            link for link in section.links if link.from_ == screen.id
+        ]
+        buttons = "".join(
+            f'<button type="button" data-prototype-target="{attr(link.to)}">{h(link.label)}</button>'
+            for link in links
+        )
+        cta = f'<div class="sandbox-cta">{h(screen.cta)}</div>' if screen.cta else ""
+        screens.append(
+            f'<article class="sandbox-screen" data-screen="{attr(screen.id)}">'
+            f"<h2>{h(screen.title)}</h2>{_paragraphs(screen.body)}{cta}<div class=\"sandbox-actions\">{buttons}</div></article>"
+        )
+    return _section_heading(section.title) + _sandbox_iframe(section.title, "".join(screens))
+
+
+def render_animation_controls(section: AnimationControlsSection) -> str:
+    presets = []
+    first = section.presets[0]
+    for preset in section.presets:
+        presets.append(
+            '<article class="sandbox-card">'
+            f"<h3>{h(preset.label)}</h3>{_paragraphs(preset.description or '')}"
+            f'<button type="button" data-animation-replay style="--duration:{preset.duration_ms}ms;--easing:{attr(preset.easing)}">Replay</button>'
+            "</article>"
+        )
+    body = (
+        f'<div class="sandbox-stage"><div class="sandbox-puck run">{h(section.preview_label)}</div></div>'
+        f'<label class="sandbox-field">Duration <input type="range" min="50" max="5000" value="{first.duration_ms}" data-duration></label>'
+        '<div class="sandbox-actions"><button type="button" data-step-duration="-50">-50ms</button><button type="button" data-step-duration="50">+50ms</button></div>'
+        + "".join(presets)
+    )
+    return _section_heading(section.title) + _sandbox_iframe(section.title, body)
+
+
+def render_token_sheet(section: TokenSheetSection) -> str:
+    groups = []
+    for group in section.groups:
+        tokens = []
+        for token in group.tokens:
+            tokens.append(
+                '<article class="gui2-token">'
+                f'<div class="gui2-token-swatch" data-token-value="{attr(token.value)}"></div>'
+                f"<h3>{h(token.name)}</h3><code>{h(token.value)}</code>"
+                f"{_paragraphs(token.description or '')}"
+                f'<button class="gui2-button secondary" data-gui2-action="copy-payload" data-gui2-payload="{attr(json.dumps(token.value))}">Copy</button>'
+                "</article>"
+            )
+        groups.append(f'<section class="gui2-token-group"><h3>{h(group.title)}</h3><div class="gui2-card-grid">{"".join(tokens)}</div></section>')
+    return _section_heading(section.title) + "".join(groups)
+
+
+def render_component_matrix(section: ComponentMatrixSection) -> str:
+    cards = []
+    for variant in section.variants:
+        selected = '<span class="gui2-badge">selected</span>' if variant.selected else ""
+        cards.append(
+            '<article class="gui2-card gui2-variant-cell">'
+            f"<h3>{h(variant.name)} {selected}</h3>"
+            f'<div class="gui2-label">{h(section.component)} / {h(variant.intent)} / {h(variant.state)}</div>'
+            f"{_paragraphs(variant.notes or '')}</article>"
+        )
+    return _section_heading(section.title) + f'<div class="gui2-component-matrix">{"".join(cards)}</div>'
+
+
+def render_slide_deck(section: SlideDeckSection) -> str:
+    slides = []
+    for slide in section.slides:
+        kicker = f'<div class="gui2-kicker">{h(slide.kicker)}</div>' if slide.kicker else ""
+        notes = f'<aside class="gui2-slide-notes">{_paragraphs(slide.notes)}</aside>' if slide.notes else ""
+        slides.append(
+            f'<article class="gui2-slide" data-gui2-slide data-slide-id="{attr(slide.id)}">'
+            f"{kicker}<h3>{h(slide.title)}</h3>{_paragraphs(slide.body)}{notes}</article>"
+        )
+    return (
+        _section_heading(section.title)
+        + '<div class="gui2-slide-deck" data-gui2-slide-deck tabindex="0">'
+        + '<div class="gui2-slide-toolbar">'
+        + '<button type="button" class="gui2-button secondary" data-gui2-slide-control="prev">Prev</button>'
+        + '<span data-gui2-slide-count></span>'
+        + '<button type="button" class="gui2-button secondary" data-gui2-slide-control="next">Next</button>'
+        + f'</div>{"".join(slides)}</div>'
+    )
+
+
+def render_chart_panel(section: ChartPanelSection) -> str:
+    max_value = max((datum.value for datum in section.data), default=1) or 1
+    rows = []
+    for datum in section.data:
+        width = max(1, min(100, int((datum.value / max_value) * 100)))
+        rows.append(
+            f'<div class="gui2-chart-row gui2-tone-{attr(datum.tone)}">'
+            f'<span>{h(datum.label)}</span><div class="gui2-chart-track"><i style="width:{width}%"></i></div><strong>{h(datum.value)}</strong></div>'
+        )
+    return _section_heading(section.title) + f'<div class="gui2-chart-panel" data-chart-type="{attr(section.chart_type)}">{"".join(rows)}</div>'
+
+
+def render_log_timeline(section: LogTimelineSection) -> str:
+    events = []
+    for event in section.events:
+        detail = (
+            f"<details><summary>Details</summary><pre>{h(event.detail)}</pre></details>"
+            if event.detail
+            else ""
+        )
+        events.append(
+            f'<li class="gui2-log-event gui2-log-{attr(event.level)}">'
+            f'<time>{h(event.timestamp)}</time><strong>{h(event.level)}</strong><span>{h(event.message)}</span>{detail}</li>'
+        )
+    return _section_heading(section.title) + f'<ol class="gui2-log-timeline">{"".join(events)}</ol>'
+
+
+def render_dependency_toggle_list(section: DependencyToggleListSection) -> str:
+    rows = []
+    for toggle in section.toggles:
+        deps = ",".join(toggle.depends_on)
+        checked = " checked" if toggle.enabled else ""
+        warning = f'<div class="sandbox-warning">{h(toggle.warning or "Dependency is disabled.")}</div>'
+        rows.append(
+            f'<label class="sandbox-toggle" data-toggle-row data-toggle-id="{attr(toggle.id)}" data-depends="{attr(deps)}">'
+            f'<input type="checkbox"{checked}>'
+            f'<span><strong>{h(toggle.label)}</strong>{_paragraphs(toggle.description or "")}{warning}</span></label>'
+        )
+    body = "".join(rows) + '<button type="button" data-copy="Feature flag diff">Copy diff</button>'
+    return _section_heading(section.title) + _sandbox_iframe(section.title, body)
+
+
+def render_prompt_tuner(section: PromptTunerSection) -> str:
+    variables = "".join(
+        f'<label class="sandbox-field">{h(variable.label)}<input data-prompt-var="{attr(variable.name)}" value="{attr(variable.value)}"></label>'
+        for variable in section.variables
+    )
+    samples = "".join(
+        f'<article class="sandbox-card"><h3>{h(sample.label)}</h3>{_paragraphs(sample.input)}{_paragraphs(sample.expected or "")}</article>'
+        for sample in section.samples
+    )
+    body = (
+        f'<textarea data-prompt-template>{h(section.template)}</textarea>'
+        f'<div class="sandbox-grid">{variables}</div>'
+        '<pre data-prompt-preview></pre>'
+        f'<div class="sandbox-grid">{samples}</div>'
+        f'<button type="button" data-copy="{attr(section.template)}">Copy template</button>'
+    )
+    return _section_heading(section.title) + _sandbox_iframe(section.title, body)
+
+
+def render_copyable_asset_grid(section: CopyableAssetGridSection) -> str:
+    assets = []
+    for asset in section.assets:
+        payload = json.dumps(asset.content, ensure_ascii=False)
+        assets.append(
+            '<article class="gui2-card">'
+            f'<div class="gui2-label">{h(asset.kind)}</div><h3>{h(asset.title)}</h3>'
+            f"{_paragraphs(asset.description or '')}<pre class=\"gui2-preview\">{h(asset.content)}</pre>"
+            f'<button class="gui2-button secondary" data-gui2-action="copy-payload" data-gui2-payload="{attr(payload)}">Copy asset</button>'
+            "</article>"
+        )
+    return _section_heading(section.title) + f'<div class="gui2-card-grid">{"".join(assets)}</div>'
+
+
+def _sandbox_iframe(title: str, body: str) -> str:
+    srcdoc = _sandbox_doc(title, body)
+    return (
+        '<div class="gui2-sandbox-shell">'
+        f'<iframe title="{attr(title)}" sandbox="allow-scripts" loading="lazy" referrerpolicy="no-referrer" srcdoc="{attr(srcdoc)}"></iframe>'
+        "</div>"
+    )
+
+
+def _sandbox_doc(title: str, body: str) -> str:
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>{h(title)}</title>
+<style>{_sandbox_css()}</style>
+</head>
+<body>
+<main class="sandbox-shell">
+{body}
+</main>
+<script>{render_sandbox_runtime_js()}</script>
+</body>
+</html>"""
+
+
+def _sandbox_css() -> str:
+    return """
+:root { --ink:#171512; --paper:#fbf7ed; --line:#27231d; --accent:#c43d2b; --blue:#2458a6; --duration:260ms; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.45 "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif; }
+button, input, textarea { font:inherit; }
+button { border:1px solid var(--line); background:var(--ink); color:white; border-radius:7px; padding:8px 11px; cursor:pointer; }
+textarea { width:100%; min-height:140px; border:1px solid var(--line); border-radius:8px; padding:12px; background:#fffdf6; }
+.sandbox-shell { padding:18px; min-height:320px; }
+.sandbox-screen, .sandbox-card, .sandbox-toggle { border:1px solid var(--line); border-radius:8px; background:#fffdf6; padding:16px; margin:0 0 12px; box-shadow:6px 6px 0 #e8ddca; }
+.sandbox-actions, .sandbox-grid { display:flex; flex-wrap:wrap; gap:10px; }
+.sandbox-stage { height:130px; border:1px dashed var(--line); border-radius:8px; display:grid; align-items:center; padding:16px; margin-bottom:12px; }
+.sandbox-puck { width:130px; padding:18px; background:var(--blue); color:white; border-radius:8px; text-align:center; transform:translateX(0); }
+.sandbox-puck.run { animation:slide var(--duration) cubic-bezier(.2,.8,.2,1) both; }
+@keyframes slide { to { transform:translateX(calc(100vw - 190px)); } }
+.sandbox-field { display:grid; gap:6px; min-width:180px; margin:8px 0; }
+.sandbox-toggle { display:flex; gap:12px; align-items:flex-start; }
+.sandbox-toggle[data-blocked="true"] { border-color:var(--accent); }
+.sandbox-warning { display:none; color:var(--accent); font-weight:700; }
+.sandbox-toggle[data-blocked="true"] .sandbox-warning { display:block; }
+pre { white-space:pre-wrap; background:#171512; color:#fffdf6; border-radius:8px; padding:12px; }
+""".strip()
 
 
 def render_actions(actions: list[Any], options: RenderOptions) -> str:

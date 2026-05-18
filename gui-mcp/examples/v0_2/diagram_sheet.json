@@ -1,0 +1,15 @@
+{
+  "v": "0.2",
+  "artifact": "diagram_sheet",
+  "title": "Background Job Figure Sheet",
+  "sections": [
+    {
+      "kind": "copyable_asset_grid",
+      "title": "Figures",
+      "assets": [
+        { "id": "queue", "title": "Queue Flow", "kind": "svg", "description": "Escaped SVG source for copy-out.", "content": "<svg viewBox='0 0 120 40'><text x='4' y='24'>Queue</text></svg>" },
+        { "id": "caption", "title": "Caption", "kind": "markdown", "content": "Worker pulls queued jobs and retries transient failures." }
+      ]
+    }
+  ]
+}

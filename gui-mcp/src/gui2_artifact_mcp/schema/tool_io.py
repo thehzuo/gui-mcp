@@ -17,7 +17,19 @@ class ToolBaseModel(BaseModel):
 
 class SearchArtifactPatternsInput(ToolBaseModel):
     query: str = ""
-    use_case: Literal["planning", "code_review", "design", "research", "editor"] | None = None
+    use_case: Literal[
+        "planning",
+        "code_review",
+        "code_understanding",
+        "design",
+        "design_system",
+        "prototyping",
+        "diagrams",
+        "decks",
+        "research",
+        "reports",
+        "editor",
+    ] | None = None
     max_results: int = Field(default=5, ge=1, le=20)
 
 

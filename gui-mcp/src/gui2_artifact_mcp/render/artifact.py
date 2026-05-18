@@ -14,7 +14,7 @@ from gui2_artifact_mcp.util.size import byte_size
 
 def render_artifact_to_html(spec: ArtifactSpec, options: RenderOptions | None = None) -> RenderedArtifact:
     options = options or RenderOptions(density=spec.density, theme=spec.theme)
-    include_runtime = options.include_runtime or options.interactivity != "none"
+    include_runtime = options.include_runtime or options.interactivity != "none" or spec.v == "0.2"
     warnings: list[str] = []
     if options.interactivity == "host_intents":
         warnings.append("host_intents interactivity is a v0.1 stub using postMessage.")
@@ -67,6 +67,7 @@ def render_header(spec: ArtifactSpec) -> str:
         '<header class="gui2-header">'
         '<div class="gui2-kicker">'
         f'<span class="gui2-badge">{h(spec.artifact.replace("_", " "))}</span>'
+        f'<span>{h(spec.v)}</span>'
         f'<span>{h(spec.audience)}</span>'
         f'<span>{h(spec.density)}</span>'
         "</div>"

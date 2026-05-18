@@ -1,0 +1,26 @@
+{
+  "v": "0.2",
+  "artifact": "approach_comparison",
+  "title": "Search Architecture Options",
+  "subtitle": "Compare three implementation approaches before committing",
+  "sections": [
+    {
+      "kind": "summary",
+      "items": [
+        { "label": "Recommendation", "value": "Incremental index", "tone": "good" },
+        { "label": "Risk", "value": "Moderate migration cost", "tone": "warning" }
+      ]
+    },
+    {
+      "kind": "filterable_collection",
+      "title": "Approaches",
+      "placeholder": "Filter by risk, speed, or cost",
+      "items": [
+        { "id": "sql", "title": "SQL-first", "body": "Reuse existing query tables and add targeted indexes.", "tags": ["safe", "low-cost"], "tone": "good" },
+        { "id": "index", "title": "Incremental index", "body": "Create a small denormalized index maintained by jobs.", "tags": ["recommended", "scalable"], "tone": "info" },
+        { "id": "external", "title": "External search", "body": "Adopt a search service and sync data asynchronously.", "tags": ["powerful", "high-risk"], "tone": "warning" }
+      ]
+    }
+  ],
+  "interactions": [{ "kind": "filter", "target": "Approaches" }]
+}
