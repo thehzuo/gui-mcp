@@ -1,8 +1,7 @@
 # web-gui-mcp
-
 `web-gui-mcp` is a Python MCP server that validates compact `ArtifactSpec`
 JSON and renders deterministic HTML artifacts. It stores artifacts in memory and can
-return either full HTML or an MCP App-style `ui://` resource URI.
+return either full HTML or an MCP App-style `ui://` resource URI. Inspired by https://thariqs.github.io/html-effectiveness/
 
 The renderer supports the original safe static `v0.1` contract and an additive
 Chrome-first `v0.2` contract with richer Studio Sheet layouts, sandboxed prototypes,
