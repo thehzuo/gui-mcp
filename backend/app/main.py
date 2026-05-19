@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import contracts, execution, plans, reviews, runs, stream, tasks
 from app.db import SessionLocal, init_db
 from app.services.capability_registry import seed_capabilities
+from app.services.scheduler import recover_running_runs
 
 
 app = FastAPI(title="Agent Loom", version="0.1.0")
@@ -28,7 +29,7 @@ app.include_router(stream.router)
 
 
 @app.on_event("startup")
-def startup() -> None:
+async def startup() -> None:
     init_db()
     app.state.scheduler_tasks = {}
     db = SessionLocal()
@@ -37,9 +38,9 @@ def startup() -> None:
         db.commit()
     finally:
         db.close()
+    recover_running_runs(app, SessionLocal)
 
 
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
-

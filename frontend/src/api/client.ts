@@ -50,6 +50,7 @@ export const api = {
   submitPlanReview: (planId: string) => request<Plan>(`/api/plans/${planId}/submit-review`, { method: "POST" }),
   approvePlan: (planId: string) => request<Plan>(`/api/plans/${planId}/approve`, { method: "POST" }),
   rejectPlan: (planId: string) => request<Plan>(`/api/plans/${planId}/reject`, { method: "POST" }),
+  revisePlan: (planId: string) => request<Plan>(`/api/plans/${planId}/revise`, { method: "POST" }),
   createTask: (planId: string, payload: Partial<TaskNode>) =>
     request<TaskNode>(`/api/plans/${planId}/tasks`, { method: "POST", body: JSON.stringify(payload) }),
   updateTask: (taskId: string, payload: Partial<TaskNode>) =>
@@ -67,10 +68,10 @@ export const api = {
     request<ReviewRecord>(`/api/reviews/${reviewId}/request-changes`, { method: "POST", body: JSON.stringify({ reviewer: "local-reviewer", comment }) }),
   startRun: (runId: string) => request<{ status: string; run_id: string }>(`/api/runs/${runId}/start`, { method: "POST" }),
   getStatus: (runId: string) => request<RunStatusSnapshot>(`/api/runs/${runId}/status`),
-  getEvents: (runId: string) => request<LedgerEvent[]>(`/api/runs/${runId}/events`)
+  getEvents: (runId: string, afterEventId?: string) =>
+    request<LedgerEvent[]>(`/api/runs/${runId}/events${afterEventId ? `?after_event_id=${encodeURIComponent(afterEventId)}` : ""}`)
 };
 
 export function streamUrl(runId: string): string {
   return `${API_BASE}/api/runs/${runId}/stream`;
 }
-

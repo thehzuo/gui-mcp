@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app import models
-from app.db import get_db
+from app.db import SessionLocal, get_db
 from app.schemas import RunCreate, RunRead, RunUpdate
+from app.services.scheduler import schedule_run
 from app.services.state_ledger import write_event
 from app.api.utils import read_run, require_run
 
@@ -55,11 +56,17 @@ def pause_run(run_id: str, db: Session = Depends(get_db)) -> RunRead:
 
 
 @router.post("/{run_id}/resume", response_model=RunRead)
-def resume_run(run_id: str, db: Session = Depends(get_db)) -> RunRead:
+async def resume_run(run_id: str, request: Request, db: Session = Depends(get_db)) -> RunRead:
     run = require_run(db, run_id)
+    if run.status == "CANCELED":
+        raise HTTPException(status_code=409, detail="Canceled runs cannot be resumed.")
     run.status = "RUNNING"
     write_event(db, run_id=run.id, plan_id=run.active_plan_id, event_type="RUN_RESUMED", payload={})
     db.commit()
+    if run.active_plan_id:
+        plan = db.get(models.Plan, run.active_plan_id)
+        if plan and plan.status == "LOCKED":
+            schedule_run(request.app, run.id, SessionLocal)
     return read_run(db, run)
 
 
@@ -70,4 +77,3 @@ def cancel_run(run_id: str, db: Session = Depends(get_db)) -> RunRead:
     write_event(db, run_id=run.id, plan_id=run.active_plan_id, event_type="RUN_CANCELED", payload={})
     db.commit()
     return read_run(db, run)
-

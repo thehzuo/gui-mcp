@@ -60,6 +60,28 @@ def test_plan_review_queue_approval_locks_plan(client):
     assert all(task["status"] == "READY" for task in locked["tasks"])
 
 
+def test_plan_revision_clones_locked_plan_and_supersedes_only_after_approval(client):
+    run = create_run_with_contract(client)
+    plan = client.post(f"/api/runs/{run['id']}/plans/generate").json()
+    locked = client.post(f"/api/plans/{plan['id']}/approve").json()
+
+    revised = client.post(f"/api/plans/{locked['id']}/revise").json()
+
+    assert revised["status"] == "DRAFT"
+    assert revised["version"] == locked["version"] + 1
+    assert len(revised["tasks"]) == len(locked["tasks"])
+    assert len(revised["dependencies"]) == len(locked["dependencies"])
+    assert client.get(f"/api/plans/{locked['id']}").json()["status"] == "LOCKED"
+
+    edited_task = client.patch(f"/api/tasks/{revised['tasks'][0]['id']}", json={"title": "Revised first task"}).json()
+    assert edited_task["title"] == "Revised first task"
+    approved_revision = client.post(f"/api/plans/{revised['id']}/approve").json()
+
+    assert approved_revision["status"] == "LOCKED"
+    assert client.get(f"/api/plans/{locked['id']}").json()["status"] == "SUPERSEDED"
+    assert client.get(f"/api/runs/{run['id']}").json()["active_plan_id"] == revised["id"]
+
+
 def test_autonomy_policy_requires_review_for_irreversible_task(client):
     run = create_run_with_contract(client)
     plan = client.post(f"/api/runs/{run['id']}/plans/generate").json()
@@ -97,6 +119,8 @@ def test_scheduler_blocks_on_review_then_completes(client):
     status = client.get(f"/api/runs/{run['id']}/status").json()
     assert status["run"]["status"] == "COMPLETED"
     assert status["run"]["progress_summary"]["SUCCEEDED"] == 5
+    assert status["task_executions"]
+    assert status["policy_summaries"] == {}
     assert any(event["event_type"] == "RUN_COMPLETED" for event in status["events"])
 
 
@@ -120,3 +144,45 @@ def test_command_executor_records_output(client):
     executions = client.get(f"/api/tasks/{task_id}/executions").json()
     assert executions[0]["exit_code"] == 0
     assert executions[0]["stdout"] == "loom"
+
+
+def test_command_executor_records_clear_config_failures(client):
+    run = create_run_with_contract(client)
+    plan = client.post(f"/api/runs/{run['id']}/plans/generate").json()
+    task_id = plan["tasks"][0]["id"]
+    client.patch(
+        f"/api/tasks/{task_id}",
+        json={
+            "executor_type": "command",
+            "tool_refs": ["command_executor"],
+            "executor_config_json": {"cwd": "/tmp/agent-loom-missing-cwd"},
+        },
+    )
+    client.post(f"/api/plans/{plan['id']}/approve")
+    client.post(f"/api/runs/{run['id']}/start")
+    import time
+
+    time.sleep(1)
+    executions = client.get(f"/api/tasks/{task_id}/executions").json()
+    assert executions[0]["status"] == "FAILED"
+    assert "requires executor_config_json.command" in executions[0]["stderr"]
+
+
+def test_run_status_surfaces_policy_review_and_blocked_reason_summaries(client):
+    run = create_run_with_contract(client)
+    plan = client.post(f"/api/runs/{run['id']}/plans/generate").json()
+    first_task_id = plan["tasks"][0]["id"]
+    second_task_id = plan["tasks"][1]["id"]
+    client.patch(f"/api/tasks/{first_task_id}", json={"human_review_required": True})
+    client.post(f"/api/plans/{plan['id']}/approve")
+
+    import asyncio
+
+    from app.services.scheduler import run_scheduler_once
+
+    asyncio.run(run_scheduler_once(run["id"], SessionLocal))
+    status = client.get(f"/api/runs/{run['id']}/status").json()
+
+    assert status["review_reasons"][first_task_id] == "Task is explicitly marked for human review."
+    assert status["blocked_reasons"][second_task_id] == "Waiting on dependencies."
+    assert status["policy_summaries"][first_task_id]["decision"] == "BLOCKED"

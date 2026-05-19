@@ -16,6 +16,9 @@ describe("ReviewPacket", () => {
     expect(screen.getByText("Task is high risk and verifier strength is NONE.")).toBeInTheDocument();
     expect(screen.getByText("HIGH")).toBeInTheDocument();
     expect(screen.getByText("NONE")).toBeInTheDocument();
+    expect(screen.getByText("Inspect current mission boundary")).toBeInTheDocument();
+    expect(screen.getByText("Human approval decision")).toBeInTheDocument();
+    expect(screen.getByText("Verify final result")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Approve" }));
     fireEvent.click(screen.getByRole("button", { name: "Changes" }));
@@ -26,4 +29,3 @@ describe("ReviewPacket", () => {
     expect(onReject).toHaveBeenCalledOnce();
   });
 });
-

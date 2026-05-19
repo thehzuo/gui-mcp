@@ -210,16 +210,19 @@ class TaskExecutionRead(APIModel):
     finished_at: datetime | None
 
 
+class PolicyDecisionRead(BaseModel):
+    decision: Literal["AUTO_EXECUTE", "DRY_RUN_REQUIRED", "HUMAN_REVIEW_REQUIRED", "BLOCKED"]
+    reason: str
+    required_action: str
+
+
 class RunStatusRead(BaseModel):
     run: RunRead
     plan: PlanRead | None
     reviews: list[ReviewRead]
     verification_results: list[VerificationResultRead]
     events: list[StateLedgerEventRead]
-
-
-class PolicyDecisionRead(BaseModel):
-    decision: Literal["AUTO_EXECUTE", "DRY_RUN_REQUIRED", "HUMAN_REVIEW_REQUIRED", "BLOCKED"]
-    reason: str
-    required_action: str
-
+    task_executions: list[TaskExecutionRead] = Field(default_factory=list)
+    blocked_reasons: dict[str, str] = Field(default_factory=dict)
+    review_reasons: dict[str, str] = Field(default_factory=dict)
+    policy_summaries: dict[str, PolicyDecisionRead] = Field(default_factory=dict)

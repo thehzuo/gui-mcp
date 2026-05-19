@@ -1,4 +1,4 @@
-import type { LedgerEvent, Plan, ReviewRecord, Run, RunStatusSnapshot, TaskContract, TaskNode, VerificationResult } from "../types/domain";
+import type { LedgerEvent, Plan, ReviewRecord, Run, RunStatusSnapshot, TaskContract, TaskExecution, TaskNode, VerificationResult } from "../types/domain";
 
 export const runFixture: Run = {
   id: "run-1",
@@ -110,8 +110,14 @@ export const reviewFixture: ReviewRecord = {
   packet_json: {
     task_title: "Review risky boundary",
     why_review_is_required: "Task is high risk and verifier strength is NONE.",
+    dependencies: ["Inspect current mission boundary"],
+    affected_downstream_tasks: ["Verify final result"],
+    expected_outputs: ["Human approval decision"],
+    proposed_execution_mode: "mock",
     risk_level: "HIGH",
+    reversibility: "PARTIALLY_REVERSIBLE",
     verifier_coverage: "NONE",
+    policy_decision: "HUMAN_REVIEW_REQUIRED",
     recommended_decision: "Approve if the task remains inside the Task Contract boundaries."
   },
   created_at: "2026-05-18T00:00:00Z",
@@ -141,11 +147,36 @@ export const verifierFixture: VerificationResult = {
   created_at: "2026-05-18T00:00:00Z"
 };
 
+export const executionFixture: TaskExecution = {
+  id: "execution-1",
+  task_id: "task-1",
+  run_id: "run-1",
+  executor_type: "command",
+  status: "SUCCEEDED",
+  command: "printf loom",
+  stdout: "loom",
+  stderr: "",
+  exit_code: 0,
+  duration_ms: 32,
+  output_json: { command: "printf loom" },
+  started_at: "2026-05-18T00:00:00Z",
+  finished_at: "2026-05-18T00:00:01Z"
+};
+
 export const statusFixture: RunStatusSnapshot = {
   run: runFixture,
   plan: { ...planFixture, status: "LOCKED" },
   reviews: [reviewFixture],
   verification_results: [verifierFixture],
-  events: [eventFixture]
+  events: [eventFixture],
+  task_executions: [executionFixture],
+  blocked_reasons: {},
+  review_reasons: { "task-2": "Task is high risk and verifier strength is NONE." },
+  policy_summaries: {
+    "task-2": {
+      decision: "HUMAN_REVIEW_REQUIRED",
+      reason: "Task is high risk and verifier strength is NONE.",
+      required_action: "Approve, reject, or edit the task."
+    }
+  }
 };
-

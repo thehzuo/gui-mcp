@@ -145,12 +145,38 @@ export interface VerificationResult {
   created_at: string;
 }
 
+export interface TaskExecution {
+  id: string;
+  task_id: string;
+  run_id: string;
+  executor_type: string;
+  status: string;
+  command: string | null;
+  stdout: string;
+  stderr: string;
+  exit_code: number | null;
+  duration_ms: number;
+  output_json: Record<string, unknown>;
+  started_at: string;
+  finished_at: string | null;
+}
+
+export interface PolicySummary {
+  decision: "AUTO_EXECUTE" | "DRY_RUN_REQUIRED" | "HUMAN_REVIEW_REQUIRED" | "BLOCKED";
+  reason: string;
+  required_action: string;
+}
+
 export interface RunStatusSnapshot {
   run: Run;
   plan: Plan | null;
   reviews: ReviewRecord[];
   verification_results: VerificationResult[];
   events: LedgerEvent[];
+  task_executions: TaskExecution[];
+  blocked_reasons: Record<string, string>;
+  review_reasons: Record<string, string>;
+  policy_summaries: Record<string, PolicySummary>;
 }
 
 export interface ValidationResult {
@@ -158,4 +184,3 @@ export interface ValidationResult {
   errors: string[];
   warnings: string[];
 }
-

@@ -11,6 +11,7 @@ const apiMock = vi.hoisted(() => ({
   submitPlanReview: vi.fn(),
   approvePlan: vi.fn(),
   rejectPlan: vi.fn(),
+  revisePlan: vi.fn(),
   createTask: vi.fn(),
   updateTask: vi.fn(),
   deleteTask: vi.fn(),
@@ -38,6 +39,7 @@ describe("PlanEditorPage", () => {
     apiMock.submitPlanReview.mockResolvedValue({ ...planFixture, status: "AWAITING_REVIEW" });
     apiMock.approvePlan.mockResolvedValue({ ...planFixture, status: "LOCKED" });
     apiMock.rejectPlan.mockResolvedValue({ ...planFixture, status: "REJECTED" });
+    apiMock.revisePlan.mockResolvedValue({ ...planFixture, id: "plan-2", version: 2, status: "DRAFT" });
     apiMock.createTask.mockResolvedValue(taskFixtures[0]);
     apiMock.updateTask.mockResolvedValue(taskFixtures[0]);
     apiMock.deleteTask.mockResolvedValue({ status: "deleted" });
@@ -62,6 +64,21 @@ describe("PlanEditorPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Move Task" }));
     await waitFor(() => expect(apiMock.updateTask).toHaveBeenCalledWith("task-1", { position_x: 10, position_y: 20 }));
+
+    fireEvent.click(screen.getByRole("button", { name: /Remove dependency/ }));
+    await waitFor(() => expect(apiMock.deleteDependency).toHaveBeenCalled());
+    expect(apiMock.deleteDependency.mock.calls[0][0]).toBe("dep-1");
+  });
+
+  it("revises a locked plan into a new draft version", async () => {
+    apiMock.listPlans.mockResolvedValue([{ ...planFixture, status: "LOCKED" }]);
+    apiMock.getPlan.mockResolvedValue({ ...planFixture, status: "LOCKED" });
+
+    renderRoute(<PlanEditorPage />, "/runs/:runId/plan", "/runs/run-1/plan?plan=plan-1");
+
+    expect(await screen.findByText("DAG Editor")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Revise Plan" }));
+
+    await waitFor(() => expect(apiMock.revisePlan).toHaveBeenCalledWith("plan-1"));
   });
 });
-

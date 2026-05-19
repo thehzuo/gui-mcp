@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from datetime import timezone
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app import models
 from app.db import get_db
-from app.models import utcnow
 from app.schemas import PlanPatch, PlanRead, ValidationResult
+from app.services.plan_lifecycle import approve_plan_version, revise_locked_plan
 from app.services.plan_validator import validate_plan
 from app.services.planner import generate_template_plan
 from app.services.review import create_plan_review
@@ -53,6 +51,15 @@ def patch_plan(plan_id: str, payload: PlanPatch, db: Session = Depends(get_db)) 
     return PlanRead.model_validate(plan)
 
 
+@router.post("/api/plans/{plan_id}/revise", response_model=PlanRead)
+def revise_plan(plan_id: str, db: Session = Depends(get_db)) -> PlanRead:
+    source = require_plan(db, plan_id)
+    revised = revise_locked_plan(db, source)
+    db.commit()
+    db.refresh(revised)
+    return PlanRead.model_validate(revised)
+
+
 @router.post("/api/plans/{plan_id}/validate", response_model=ValidationResult)
 def validate_plan_endpoint(plan_id: str, db: Session = Depends(get_db)) -> ValidationResult:
     require_plan(db, plan_id)
@@ -77,29 +84,7 @@ def submit_plan_review(plan_id: str, db: Session = Depends(get_db)) -> PlanRead:
 @router.post("/api/plans/{plan_id}/approve", response_model=PlanRead)
 def approve_plan(plan_id: str, db: Session = Depends(get_db)) -> PlanRead:
     plan = require_plan(db, plan_id)
-    result = validate_plan(db, plan.id)
-    if not result.valid:
-        raise HTTPException(status_code=422, detail=result.errors)
-    now = utcnow().astimezone(timezone.utc)
-    plan.status = "LOCKED"
-    plan.approved_by = "local-reviewer"
-    plan.approved_at = now
-    plan.locked_at = now
-    plan.run.status = "PLAN_APPROVED"
-    plan.run.active_plan_id = plan.id
-    for task in plan.tasks:
-        if task.status == "DRAFT":
-            task.status = "READY"
-    reviews = (
-        db.query(models.ReviewRecord)
-        .filter(models.ReviewRecord.plan_id == plan.id, models.ReviewRecord.review_type == "PLAN_REVIEW", models.ReviewRecord.status == "PENDING")
-        .all()
-    )
-    for review in reviews:
-        review.status = "APPROVED"
-        review.decision = "APPROVED"
-        review.reviewer = "local-reviewer"
-    write_event(db, run_id=plan.run_id, plan_id=plan.id, event_type="PLAN_APPROVED", payload={"approved_by": "local-reviewer"})
+    approve_plan_version(db, plan, approved_by="local-reviewer", via="direct")
     db.commit()
     db.refresh(plan)
     return PlanRead.model_validate(plan)

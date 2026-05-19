@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from datetime import timezone
-
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from app import models
-from app.db import get_db
-from app.models import utcnow
+from app.db import SessionLocal, get_db
 from app.schemas import ReviewDecision, ReviewRead
-from app.services.plan_validator import validate_plan
+from app.services.plan_lifecycle import approve_plan_version
+from app.services.scheduler import schedule_run
 from app.services.state_ledger import write_event
 
 router = APIRouter(prefix="/api/reviews", tags=["reviews"])
@@ -25,8 +23,9 @@ def list_reviews(status: str | None = Query(default=None), db: Session = Depends
 
 
 @router.post("/{review_id}/approve", response_model=ReviewRead)
-def approve_review(review_id: str, payload: ReviewDecision, db: Session = Depends(get_db)) -> ReviewRead:
+async def approve_review(review_id: str, payload: ReviewDecision, request: Request, db: Session = Depends(get_db)) -> ReviewRead:
     review = _require_review(db, review_id)
+    run_id = review.run_id
     review.status = "APPROVED"
     review.decision = "APPROVED"
     review.reviewer = payload.reviewer
@@ -45,28 +44,17 @@ def approve_review(review_id: str, payload: ReviewDecision, db: Session = Depend
     if review.plan_id and review.review_type == "PLAN_REVIEW":
         plan = db.get(models.Plan, review.plan_id)
         if plan:
-            result = validate_plan(db, plan.id)
-            if not result.valid:
-                raise HTTPException(status_code=422, detail=result.errors)
-            now = utcnow().astimezone(timezone.utc)
-            plan.status = "LOCKED"
-            plan.approved_by = payload.reviewer
-            plan.approved_at = now
-            plan.locked_at = now
-            plan.run.status = "PLAN_APPROVED"
-            plan.run.active_plan_id = plan.id
-            for task in plan.tasks:
-                if task.status == "DRAFT":
-                    task.status = "READY"
-            write_event(db, run_id=review.run_id, plan_id=review.plan_id, event_type="PLAN_APPROVED", payload={"via": "review_queue", "approved_by": payload.reviewer})
+            approve_plan_version(db, plan, approved_by=payload.reviewer, via="review_queue")
     db.commit()
+    _schedule_if_running(request, db, run_id)
     db.refresh(review)
     return ReviewRead.model_validate(review)
 
 
 @router.post("/{review_id}/reject", response_model=ReviewRead)
-def reject_review(review_id: str, payload: ReviewDecision, db: Session = Depends(get_db)) -> ReviewRead:
+async def reject_review(review_id: str, payload: ReviewDecision, request: Request, db: Session = Depends(get_db)) -> ReviewRead:
     review = _require_review(db, review_id)
+    run_id = review.run_id
     review.status = "REJECTED"
     review.decision = "REJECTED"
     review.reviewer = payload.reviewer
@@ -84,6 +72,7 @@ def reject_review(review_id: str, payload: ReviewDecision, db: Session = Depends
             plan.run.status = "PLANNING"
             write_event(db, run_id=plan.run_id, plan_id=plan.id, event_type="PLAN_REJECTED", payload=payload.model_dump())
     db.commit()
+    _schedule_if_running(request, db, run_id)
     db.refresh(review)
     return ReviewRead.model_validate(review)
 
@@ -106,3 +95,12 @@ def _require_review(db: Session, review_id: str) -> models.ReviewRecord:
     if not review:
         raise HTTPException(status_code=404, detail="Review not found.")
     return review
+
+
+def _schedule_if_running(request: Request, db: Session, run_id: str) -> None:
+    run = db.get(models.Run, run_id)
+    if not run or run.status != "RUNNING" or not run.active_plan_id:
+        return
+    plan = db.get(models.Plan, run.active_plan_id)
+    if plan and plan.status == "LOCKED":
+        schedule_run(request.app, run.id, SessionLocal)

@@ -16,6 +16,29 @@ from app.services.verifier import verify_task
 TERMINAL_TASK_STATUSES = {"SUCCEEDED", "FAILED", "CANCELED", "ROLLED_BACK"}
 
 
+def schedule_run(app, run_id: str, session_factory: sessionmaker) -> None:
+    tasks = getattr(app.state, "scheduler_tasks", {})
+    existing = tasks.get(run_id)
+    if not existing or existing.done():
+        tasks[run_id] = asyncio.create_task(run_scheduler_loop(run_id, session_factory))
+        app.state.scheduler_tasks = tasks
+
+
+def recover_running_runs(app, session_factory: sessionmaker) -> int:
+    db = session_factory()
+    try:
+        runs = db.query(models.Run).filter(models.Run.status == "RUNNING", models.Run.active_plan_id.isnot(None)).all()
+        recovered = 0
+        for run in runs:
+            plan = db.get(models.Plan, run.active_plan_id)
+            if plan and plan.status == "LOCKED":
+                schedule_run(app, run.id, session_factory)
+                recovered += 1
+        return recovered
+    finally:
+        db.close()
+
+
 def dependency_ids(db: Session, plan_id: str, task_id: str) -> list[str]:
     deps = (
         db.query(models.TaskDependency)
