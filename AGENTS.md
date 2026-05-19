@@ -12,7 +12,7 @@ This repo implements `web-gui-mcp`, a Python MCP server that compiles compact
 - Chrome smoke tests: `uv run pytest tests/test_chromium_smoke.py`
 - Lint: `uv run ruff check .`
 - Dev server: `uv run web-gui-mcp`
-- Render example: `uv run python scripts/render_example.py examples/implementation_plan.json /tmp/gui2-plan.html`
+- Render example: `uv run python scripts/render_example.py examples/implementation_plan.json /tmp/web-gui-plan.html`
 
 ## Engineering Rules
 

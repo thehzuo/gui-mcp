@@ -2,6 +2,11 @@
 `web-gui-mcp` is a Python MCP server that allows your agent to outsource the html generation and rendering. It stores artifacts in memory and can
 return either full HTML or an MCP App-style `ui://` resource URI. Inspired by https://thariqs.github.io/html-effectiveness/ but with cost in mind.
 
+Agent/LLM entrypoints:
+
+- [`README.agent.md`](README.agent.md): setup, Claude Code, Cursor, and agent usage guidance.
+- [`llms.txt`](llms.txt): concise machine-readable orientation.
+
 The renderer supports the original safe static `v0.1` contract and an additive
 Chrome-first `v0.2` contract with richer Studio Sheet layouts, sandboxed prototypes,
 and deterministic local interactions.
@@ -125,6 +130,10 @@ startup_timeout_sec = 20
 tool_timeout_sec = 60
 enabled = true
 ```
+
+## Connect To Claude Code Or Cursor
+
+For Claude Code and Cursor configuration snippets, see [`README.agent.md`](README.agent.md).
 
 ## Render An Artifact
 

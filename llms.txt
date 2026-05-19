@@ -1,0 +1,38 @@
+# web-gui-mcp
+
+Local stdio MCP server for rendering compact `ArtifactSpec` JSON into safe,
+deterministic HTML artifacts.
+
+Use this when an agent needs a rich UI surface instead of plain text: comparisons,
+reviews, implementation handoffs, diagrams, reports, slide decks, prototype flows,
+triage boards, feature flag editors, and prompt tuners.
+
+Primary agent guide:
+
+- `README.agent.md`
+
+Human overview:
+
+- `README.md`
+
+Important commands:
+
+```bash
+cd /Users/hzuo/src/web-gui-mcp
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -e ".[dev]"
+.venv/bin/python -m pytest
+.venv/bin/ruff check .
+.venv/bin/python scripts/render_gallery.py
+```
+
+MCP command:
+
+```text
+/Users/hzuo/src/web-gui-mcp/.venv/bin/web-gui-mcp
+```
+
+Agent rule: do not write arbitrary HTML, CSS, or JavaScript into artifact specs. Use
+the supported declarative schema, call `lint_artifact`, then call `render_artifact`.
+Prefer `resource_only` or `mcp_app` delivery for large artifacts.
+
