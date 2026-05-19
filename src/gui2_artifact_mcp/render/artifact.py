@@ -42,7 +42,13 @@ def render_artifact_to_html(spec: ArtifactSpec, options: RenderOptions | None = 
   <title>{h(spec.title)}</title>
   <style>{render_css(theme=options.theme, density=options.density)}</style>
 </head>
-<body data-gui2-artifact="{attr(spec.artifact)}" data-gui2-id="{attr(artifact_id)}">
+<body
+  data-gui2-artifact="{attr(spec.artifact)}"
+  data-gui2-id="{attr(artifact_id)}"
+  data-gui2-version="{attr(spec.v)}"
+  data-gui2-density="{attr(spec.density)}"
+  data-gui2-theme="{attr(spec.theme)}"
+>
   <script id="artifact-state" type="application/json">{state_json}</script>
   <main class="gui2-shell">
     {render_header(spec)}

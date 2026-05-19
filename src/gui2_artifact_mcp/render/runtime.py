@@ -114,19 +114,50 @@ def render_runtime_js() -> str:
     }
   });
   let dragged = null;
+  const clearDropState = () => {
+    document.querySelectorAll("[data-gui2-drop-zone][data-gui2-drag-over]").forEach((item) => {
+      delete item.dataset.gui2DragOver;
+    });
+  };
+  const moveDraggedTo = (zone) => {
+    if (!zone || !dragged) return false;
+    zone.appendChild(dragged);
+    clearDropState();
+    window.dispatchEvent(new CustomEvent("gui2:state-changed", { detail: { kind: "drag_reorder" } }));
+    dragged = null;
+    return true;
+  };
   document.addEventListener("dragstart", (event) => {
     dragged = event.target.closest("[data-gui2-drag-card]");
     if (dragged) event.dataTransfer.setData("text/plain", dragged.dataset.gui2CardId || "");
   });
   document.addEventListener("dragover", (event) => {
-    if (event.target.closest("[data-gui2-drop-zone]")) event.preventDefault();
+    const zone = event.target.closest("[data-gui2-drop-zone]");
+    document.querySelectorAll("[data-gui2-drop-zone][data-gui2-drag-over]").forEach((item) => {
+      if (item !== zone) delete item.dataset.gui2DragOver;
+    });
+    if (zone) {
+      event.preventDefault();
+      zone.dataset.gui2DragOver = "true";
+    }
+  });
+  document.addEventListener("dragleave", (event) => {
+    const zone = event.target.closest("[data-gui2-drop-zone]");
+    if (zone && (!event.relatedTarget || !zone.contains(event.relatedTarget))) delete zone.dataset.gui2DragOver;
   });
   document.addEventListener("drop", (event) => {
     const zone = event.target.closest("[data-gui2-drop-zone]");
     if (!zone || !dragged) return;
     event.preventDefault();
-    zone.appendChild(dragged);
-    window.dispatchEvent(new CustomEvent("gui2:state-changed", { detail: { kind: "drag_reorder" } }));
+    moveDraggedTo(zone);
+  });
+  document.addEventListener("dragend", (event) => {
+    if (!dragged) return;
+    const target = document.elementFromPoint(event.clientX, event.clientY);
+    const zone = target && target.closest("[data-gui2-drop-zone]");
+    moveDraggedTo(zone);
+    clearDropState();
+    dragged = null;
   });
 })();
 """.strip()

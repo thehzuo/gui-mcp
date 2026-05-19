@@ -418,6 +418,20 @@ def render_inspector_diagram(section: InspectorDiagramSection) -> str:
             f'<button class="gui2-diagram-node gui2-tone-{attr(node.tone)}" type="button" data-gui2-inspect data-gui2-title="{attr(node.label)}" data-gui2-body="{attr(node.description)}" style="left:{node.x}%;top:{node.y}%;">'
             f"{h(node.label)}</button>"
         )
+    positions = {node.id: node for node in section.nodes}
+    edge_lines = []
+    for edge in section.edges:
+        start = positions.get(edge.from_)
+        end = positions.get(edge.to)
+        if start and end:
+            edge_lines.append(
+                f'<line x1="{start.x}" y1="{start.y}" x2="{end.x}" y2="{end.y}"></line>'
+            )
+    edge_svg = (
+        '<svg class="gui2-diagram-edges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'
+        + "".join(edge_lines)
+        + "</svg>"
+    )
     edges = "".join(
         f'<li>{h(edge.from_)} -> {h(edge.to)}{": " + h(edge.label) if edge.label else ""}</li>'
         for edge in section.edges
@@ -425,7 +439,7 @@ def render_inspector_diagram(section: InspectorDiagramSection) -> str:
     return (
         _section_heading(section.title)
         + '<div class="gui2-diagram-layout" data-gui2-diagram>'
-        + f'<div class="gui2-diagram-canvas">{"".join(nodes)}</div>'
+        + f'<div class="gui2-diagram-canvas">{edge_svg}{"".join(nodes)}</div>'
         + '<aside class="gui2-inspector"><div class="gui2-label">Inspector</div>'
         + '<h3 data-gui2-inspector-title></h3><p data-gui2-inspector-body class="gui2-muted"></p>'
         + f'<ul class="gui2-list">{edges}</ul></aside></div>'
@@ -493,6 +507,9 @@ def render_component_matrix(section: ComponentMatrixSection) -> str:
         cards.append(
             '<article class="gui2-card gui2-variant-cell">'
             f"<h3>{h(variant.name)} {selected}</h3>"
+            '<div class="gui2-component-preview">'
+            f'<div class="gui2-component-specimen" data-state="{attr(variant.state)}" data-intent="{attr(variant.intent)}">'
+            f"{h(section.component)}</div></div>"
             f'<div class="gui2-label">{h(section.component)} / {h(variant.intent)} / {h(variant.state)}</div>'
             f"{_paragraphs(variant.notes or '')}</article>"
         )
@@ -624,25 +641,34 @@ def _sandbox_doc(title: str, body: str) -> str:
 
 def _sandbox_css() -> str:
     return """
-:root { --ink:#171512; --paper:#fbf7ed; --line:#27231d; --accent:#c43d2b; --blue:#2458a6; --duration:260ms; }
+:root { --ink:#1d1d1f; --paper:#f5f5f7; --line:#d2d2d7; --accent:#0071e3; --blue:#0066cc; --duration:260ms; --shadow:0 14px 32px rgba(0,0,0,.08); }
 * { box-sizing:border-box; }
-body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.45 "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif; }
+[hidden] { display:none !important; }
+body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+p { margin:0; max-width:64ch; line-height:1.66; }
+p + p { margin-top:10px; }
+h2, h3 { margin:0; line-height:1.15; }
 button, input, textarea { font:inherit; }
-button { border:1px solid var(--line); background:var(--ink); color:white; border-radius:7px; padding:8px 11px; cursor:pointer; }
-textarea { width:100%; min-height:140px; border:1px solid var(--line); border-radius:8px; padding:12px; background:#fffdf6; }
-.sandbox-shell { padding:18px; min-height:320px; }
-.sandbox-screen, .sandbox-card, .sandbox-toggle { border:1px solid var(--line); border-radius:8px; background:#fffdf6; padding:16px; margin:0 0 12px; box-shadow:6px 6px 0 #e8ddca; }
+button { border:1px solid var(--accent); background:var(--accent); color:white; border-radius:999px; padding:8px 14px; cursor:pointer; }
+button:hover { background:#147ce5; border-color:#147ce5; }
+input, textarea { width:100%; border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:#fff; color:var(--ink); }
+textarea { min-height:140px; }
+.sandbox-shell { display:grid; gap:14px; padding:18px; min-height:320px; }
+.sandbox-screen, .sandbox-card, .sandbox-toggle { display:grid; gap:11px; align-content:start; border:1px solid var(--line); border-radius:8px; background:#fff; padding:16px; margin:0; box-shadow:var(--shadow); }
 .sandbox-actions, .sandbox-grid { display:flex; flex-wrap:wrap; gap:10px; }
-.sandbox-stage { height:130px; border:1px dashed var(--line); border-radius:8px; display:grid; align-items:center; padding:16px; margin-bottom:12px; }
+.sandbox-actions { position:sticky; bottom:0; padding-top:8px; background:linear-gradient(transparent, var(--paper) 34%); }
+.sandbox-grid { align-items:start; }
+.sandbox-stage { height:150px; border:1px dashed var(--line); border-radius:8px; display:grid; align-items:center; padding:16px; background:#fff; }
 .sandbox-puck { width:130px; padding:18px; background:var(--blue); color:white; border-radius:8px; text-align:center; transform:translateX(0); }
 .sandbox-puck.run { animation:slide var(--duration) cubic-bezier(.2,.8,.2,1) both; }
 @keyframes slide { to { transform:translateX(calc(100vw - 190px)); } }
 .sandbox-field { display:grid; gap:6px; min-width:180px; margin:8px 0; }
-.sandbox-toggle { display:flex; gap:12px; align-items:flex-start; }
+.sandbox-toggle { display:flex; gap:12px; align-items:flex-start; box-shadow:none; }
+.sandbox-toggle input { width:auto; margin-top:4px; accent-color:var(--accent); }
 .sandbox-toggle[data-blocked="true"] { border-color:var(--accent); }
 .sandbox-warning { display:none; color:var(--accent); font-weight:700; }
 .sandbox-toggle[data-blocked="true"] .sandbox-warning { display:block; }
-pre { white-space:pre-wrap; background:#171512; color:#fffdf6; border-radius:8px; padding:12px; }
+pre { white-space:pre-wrap; background:#1d1d1f; color:#f5f5f7; border-radius:8px; padding:12px; overflow:auto; }
 """.strip()
 
 
