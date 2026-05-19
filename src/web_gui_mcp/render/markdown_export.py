@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.schema.artifact import ArtifactSpec
 
 
 def export_markdown(spec: ArtifactSpec) -> str:

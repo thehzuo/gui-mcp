@@ -5,7 +5,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.schema.artifact import ArtifactSpec
 
 from .conftest import example_paths, v01_example_paths, v02_example_paths
 

@@ -4,8 +4,8 @@ from datetime import UTC, datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
-from gui2_artifact_mcp.store.ids import artifact_id_for_spec
+from web_gui_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.store.ids import artifact_id_for_spec
 
 
 class StoredArtifact(BaseModel):

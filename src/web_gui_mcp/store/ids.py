@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.schema.artifact import ArtifactSpec
 
 
 def artifact_id_for_spec(spec: ArtifactSpec) -> str:

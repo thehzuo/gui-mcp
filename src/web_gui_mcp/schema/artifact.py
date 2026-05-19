@@ -4,7 +4,7 @@ from typing import Annotated, Any, Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from gui2_artifact_mcp.schema.limits import (
+from web_gui_mcp.schema.limits import (
     MAX_ACTIONS,
     MAX_BODY_LENGTH,
     MAX_CODE_LENGTH,

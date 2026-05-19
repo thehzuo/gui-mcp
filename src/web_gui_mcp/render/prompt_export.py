@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 
-from gui2_artifact_mcp.render.markdown_export import export_markdown
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.render.markdown_export import export_markdown
+from web_gui_mcp.schema.artifact import ArtifactSpec
 
 
 def export_prompt(spec: ArtifactSpec) -> str:

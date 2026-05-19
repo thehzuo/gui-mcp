@@ -1,7 +1,7 @@
 [project]
-name = "gui2-artifact-mcp-py"
+name = "web-gui-mcp"
 version = "0.1.0"
-description = "Python MCP server that renders GUI 2.0 ArtifactSpec JSON into deterministic HTML artifacts."
+description = "Python MCP server that renders Web GUI ArtifactSpec JSON into deterministic HTML artifacts."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -10,9 +10,8 @@ dependencies = [
 ]
 
 [project.scripts]
-gui2-artifact-mcp = "gui2_artifact_mcp.server:main"
-gui2-artifact-mcp-py = "gui2_artifact_mcp.server:main"
-gui2-render-example = "gui2_artifact_mcp.cli:render_example_main"
+web-gui-mcp = "web_gui_mcp.server:main"
+web-gui-render-example = "web_gui_mcp.cli:render_example_main"
 
 [dependency-groups]
 dev = [

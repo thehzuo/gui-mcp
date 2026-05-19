@@ -3,13 +3,13 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from gui2_artifact_mcp.lint.artifact import lint_artifact_input
-from gui2_artifact_mcp.registry.patterns import artifact_schema, get_pattern, search_patterns
-from gui2_artifact_mcp.render.artifact import render_artifact_to_html
-from gui2_artifact_mcp.render.markdown_export import export_markdown
-from gui2_artifact_mcp.render.prompt_export import export_prompt
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
-from gui2_artifact_mcp.schema.tool_io import (
+from web_gui_mcp.lint.artifact import lint_artifact_input
+from web_gui_mcp.registry.patterns import artifact_schema, get_pattern, search_patterns
+from web_gui_mcp.render.artifact import render_artifact_to_html
+from web_gui_mcp.render.markdown_export import export_markdown
+from web_gui_mcp.render.prompt_export import export_prompt
+from web_gui_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.schema.tool_io import (
     ArtifactListItem,
     ExportArtifactInput,
     ExportArtifactOutput,
@@ -27,10 +27,10 @@ from gui2_artifact_mcp.schema.tool_io import (
     SearchArtifactPatternsInput,
     SearchArtifactPatternsOutput,
 )
-from gui2_artifact_mcp.store.memory import MemoryArtifactStore
-from gui2_artifact_mcp.util.json_patch import apply_json_patch
+from web_gui_mcp.store.memory import MemoryArtifactStore
+from web_gui_mcp.util.json_patch import apply_json_patch
 
-RESOURCE_PREFIX = "ui://gui2/artifacts"
+RESOURCE_PREFIX = "ui://web-gui/artifacts"
 
 
 def search_artifact_patterns_handler(

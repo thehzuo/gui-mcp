@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import json
 
-from gui2_artifact_mcp.render.css import render_css
-from gui2_artifact_mcp.render.runtime import render_runtime_tag
-from gui2_artifact_mcp.render.sections import render_actions, render_section, render_source_list
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec, SourceListSection
-from gui2_artifact_mcp.schema.tool_io import RenderedArtifact, RenderOptions
-from gui2_artifact_mcp.store.ids import artifact_id_for_spec
-from gui2_artifact_mcp.util.escape import attr, h, safe_json_script
-from gui2_artifact_mcp.util.size import byte_size
+from web_gui_mcp.render.css import render_css
+from web_gui_mcp.render.runtime import render_runtime_tag
+from web_gui_mcp.render.sections import render_actions, render_section, render_source_list
+from web_gui_mcp.schema.artifact import ArtifactSpec, SourceListSection
+from web_gui_mcp.schema.tool_io import RenderedArtifact, RenderOptions
+from web_gui_mcp.store.ids import artifact_id_for_spec
+from web_gui_mcp.util.escape import attr, h, safe_json_script
+from web_gui_mcp.util.size import byte_size
 
 
 def render_artifact_to_html(spec: ArtifactSpec, options: RenderOptions | None = None) -> RenderedArtifact:

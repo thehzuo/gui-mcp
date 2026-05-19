@@ -1,4 +1,4 @@
-"""GUI 2.0 Artifact MCP server."""
+"""Web GUI MCP server."""
 
 __all__ = ["__version__"]
 

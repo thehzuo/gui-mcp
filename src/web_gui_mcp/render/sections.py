@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from gui2_artifact_mcp.render.runtime import render_sandbox_runtime_js
-from gui2_artifact_mcp.schema.artifact import (
+from web_gui_mcp.render.runtime import render_sandbox_runtime_js
+from web_gui_mcp.schema.artifact import (
     AnimationControlsSection,
     BoardSection,
     CalloutSection,
@@ -35,8 +35,8 @@ from gui2_artifact_mcp.schema.artifact import (
     TokenSheetSection,
     VariantGridSection,
 )
-from gui2_artifact_mcp.schema.tool_io import RenderOptions
-from gui2_artifact_mcp.util.escape import attr, h, safe_href
+from web_gui_mcp.schema.tool_io import RenderOptions
+from web_gui_mcp.util.escape import attr, h, safe_href
 
 
 def render_section(section: Any, options: RenderOptions) -> str:

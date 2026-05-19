@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from gui2_artifact_mcp.render.artifact import render_artifact_to_html
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
-from gui2_artifact_mcp.util.escape import attr, h
+from web_gui_mcp.render.artifact import render_artifact_to_html
+from web_gui_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.util.escape import attr, h
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = ROOT / "demo" / "index.html"
@@ -354,7 +354,7 @@ def _gallery_html(cards: str, nav_items: str, count: int) -> str:
 </head>
 <body>
   <header>
-    <div class="eyebrow">GUI2 artifact MCP demo gallery</div>
+    <div class="eyebrow">Web GUI MCP demo gallery</div>
     <h1>All generated artifacts</h1>
     <p class="intro">{count} bundled examples rendered as deterministic HTML. Each card embeds a compact preview and links to the full generated page for Chrome verification.</p>
   </header>

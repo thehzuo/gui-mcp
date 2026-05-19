@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
-from gui2_artifact_mcp.schema.tool_io import PatternSummary
+from web_gui_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.schema.tool_io import PatternSummary
 
 
 @dataclass(frozen=True)

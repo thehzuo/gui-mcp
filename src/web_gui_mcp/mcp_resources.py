@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from gui2_artifact_mcp.render.css import render_css
-from gui2_artifact_mcp.render.runtime import render_runtime_js
-from gui2_artifact_mcp.store.memory import MemoryArtifactStore
+from web_gui_mcp.render.css import render_css
+from web_gui_mcp.render.runtime import render_runtime_js
+from web_gui_mcp.store.memory import MemoryArtifactStore
 
 APP_MIME = "text/html;profile=mcp-app"
 
@@ -25,14 +25,14 @@ def artifact_resource_handler(artifact_id: str, store: MemoryArtifactStore) -> s
 
 
 def register_resources(mcp: Any, store: MemoryArtifactStore) -> None:
-    @mcp.resource("ui://gui2/runtime/v0.1.css", mime_type="text/css")
+    @mcp.resource("ui://web-gui/runtime/v0.1.css", mime_type="text/css")
     def runtime_css() -> str:
         return runtime_css_resource()
 
-    @mcp.resource("ui://gui2/runtime/v0.1.js", mime_type="application/javascript")
+    @mcp.resource("ui://web-gui/runtime/v0.1.js", mime_type="application/javascript")
     def runtime_js() -> str:
         return runtime_js_resource()
 
-    @mcp.resource("ui://gui2/artifacts/{artifact_id}", mime_type=APP_MIME)
+    @mcp.resource("ui://web-gui/artifacts/{artifact_id}", mime_type=APP_MIME)
     def artifact_resource(artifact_id: str) -> str:
         return artifact_resource_handler(artifact_id, store)

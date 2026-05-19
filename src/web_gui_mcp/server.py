@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
 
-from gui2_artifact_mcp.mcp_resources import register_resources
-from gui2_artifact_mcp.mcp_tools import register_tools
-from gui2_artifact_mcp.store.memory import MemoryArtifactStore
+from web_gui_mcp.mcp_resources import register_resources
+from web_gui_mcp.mcp_tools import register_tools
+from web_gui_mcp.store.memory import MemoryArtifactStore
 
 STORE = MemoryArtifactStore()
 
 
 def create_server() -> FastMCP:
-    mcp = FastMCP("gui2-artifact-mcp-py")
+    mcp = FastMCP("web-gui-mcp")
     register_tools(mcp, STORE)
     register_resources(mcp, STORE)
     return mcp

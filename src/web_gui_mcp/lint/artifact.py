@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import re
 
-from gui2_artifact_mcp.schema.limits import MAX_BODY_LENGTH, MAX_CODE_LENGTH, MAX_SECTIONS
-from gui2_artifact_mcp.schema.tool_io import LintArtifactInput, LintArtifactOutput, LintIssue
+from web_gui_mcp.schema.limits import MAX_BODY_LENGTH, MAX_CODE_LENGTH, MAX_SECTIONS
+from web_gui_mcp.schema.tool_io import LintArtifactInput, LintArtifactOutput, LintIssue
 
 RISKY_TEXT_RE = re.compile(r"(<\s*script|</\s*script|on[a-z]+\s*=|javascript:)", re.I)
 INLINE_HANDLER_RE = re.compile(r"\son[a-z]+\s*=", re.I)

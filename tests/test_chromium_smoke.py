@@ -5,8 +5,8 @@ from typing import Any
 
 import pytest
 
-from gui2_artifact_mcp.render.artifact import render_artifact_to_html
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.render.artifact import render_artifact_to_html
+from web_gui_mcp.schema.artifact import ArtifactSpec
 
 pytest.importorskip("playwright.sync_api")
 from playwright.sync_api import Page, sync_playwright  # noqa: E402

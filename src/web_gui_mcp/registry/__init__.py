@@ -1,4 +1,4 @@
-from gui2_artifact_mcp.registry.patterns import (
+from web_gui_mcp.registry.patterns import (
     PATTERNS,
     artifact_schema,
     get_pattern,

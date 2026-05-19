@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from gui2_artifact_mcp.render.markdown_export import export_markdown
-from gui2_artifact_mcp.render.prompt_export import export_prompt
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.render.markdown_export import export_markdown
+from web_gui_mcp.render.prompt_export import export_prompt
+from web_gui_mcp.schema.artifact import ArtifactSpec
 
 
 def test_markdown_and_prompt_exports_are_useful() -> None:

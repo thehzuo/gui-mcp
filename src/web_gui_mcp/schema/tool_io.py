@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec, Density, Theme
+from web_gui_mcp.schema.artifact import ArtifactSpec, Density, Theme
 
 DeliveryMode = Literal["static_html", "mcp_app", "resource_only"]
 InteractivityMode = Literal["none", "local", "host_intents"]

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from gui2_artifact_mcp.schema.artifact import Density, Theme
+from web_gui_mcp.schema.artifact import Density, Theme
 
 
 def render_css(theme: Theme = "neutral", density: Density = "normal") -> str:

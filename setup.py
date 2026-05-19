@@ -3,9 +3,9 @@ from __future__ import annotations
 from setuptools import find_packages, setup
 
 setup(
-    name="gui2-artifact-mcp-py",
+    name="web-gui-mcp",
     version="0.1.0",
-    description="Python MCP server that renders GUI 2.0 ArtifactSpec JSON into HTML.",
+    description="Python MCP server that renders Web GUI ArtifactSpec JSON into HTML.",
     package_dir={"": "src"},
     packages=find_packages("src"),
     python_requires=">=3.11",
@@ -13,9 +13,8 @@ setup(
     extras_require={"dev": ["playwright>=1.45", "pytest>=8", "ruff>=0.5"]},
     entry_points={
         "console_scripts": [
-            "gui2-artifact-mcp=gui2_artifact_mcp.server:main",
-            "gui2-artifact-mcp-py=gui2_artifact_mcp.server:main",
-            "gui2-render-example=gui2_artifact_mcp.cli:render_example_main",
+            "web-gui-mcp=web_gui_mcp.server:main",
+            "web-gui-render-example=web_gui_mcp.cli:render_example_main",
         ]
     },
 )

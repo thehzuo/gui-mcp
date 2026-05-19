@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from gui2_artifact_mcp.render.artifact import render_artifact_to_html
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.render.artifact import render_artifact_to_html
+from web_gui_mcp.schema.artifact import ArtifactSpec
 
 
 def test_model_text_is_escaped_across_text_and_attributes() -> None:

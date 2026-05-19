@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 
-from gui2_artifact_mcp.mcp_resources import artifact_resource_handler
-from gui2_artifact_mcp.mcp_tools import (
+from web_gui_mcp.mcp_resources import artifact_resource_handler
+from web_gui_mcp.mcp_tools import (
     export_artifact_handler,
     get_artifact_schema_handler,
     lint_artifact_handler,
@@ -12,8 +12,8 @@ from gui2_artifact_mcp.mcp_tools import (
     render_artifact_handler,
     search_artifact_patterns_handler,
 )
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
-from gui2_artifact_mcp.schema.tool_io import (
+from web_gui_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.schema.tool_io import (
     ExportArtifactInput,
     GetArtifactSchemaInput,
     JsonPatchOp,
@@ -23,7 +23,7 @@ from gui2_artifact_mcp.schema.tool_io import (
     RenderArtifactInput,
     SearchArtifactPatternsInput,
 )
-from gui2_artifact_mcp.store.memory import MemoryArtifactStore
+from web_gui_mcp.store.memory import MemoryArtifactStore
 
 
 def _spec() -> ArtifactSpec:
@@ -59,7 +59,7 @@ def test_render_list_resource_and_export() -> None:
         store,
     )
     assert output.html is None
-    assert output.resource_uri == f"ui://gui2/artifacts/{output.artifact_id}"
+    assert output.resource_uri == f"ui://web-gui/artifacts/{output.artifact_id}"
     assert output.byte_size > 1000
 
     listed = list_artifacts_handler(ListArtifactsInput(), store)

@@ -1,6 +1,6 @@
-# gui2-artifact-mcp-py
+# web-gui-mcp
 
-`gui2-artifact-mcp-py` is a Python MCP server that validates compact `ArtifactSpec`
+`web-gui-mcp` is a Python MCP server that validates compact `ArtifactSpec`
 JSON and renders deterministic HTML artifacts. It stores artifacts in memory and can
 return either full HTML or an MCP App-style `ui://` resource URI.
 
@@ -14,7 +14,7 @@ and deterministic local interactions.
 uv sync
 uv run pytest
 uv run pytest tests/test_chromium_smoke.py
-uv run python scripts/render_example.py examples/implementation_plan.json /tmp/gui2-plan.html
+uv run python scripts/render_example.py examples/implementation_plan.json /tmp/web-gui-plan.html
 ```
 
 Without `uv`:
@@ -25,7 +25,7 @@ python -m venv .venv
 pip install -e ".[dev]"
 pytest
 pytest tests/test_chromium_smoke.py
-python scripts/render_example.py examples/implementation_plan.json /tmp/gui2-plan.html
+python scripts/render_example.py examples/implementation_plan.json /tmp/web-gui-plan.html
 ```
 
 The Chromium smoke tests target local Google Chrome/Chromium through Playwright.
@@ -33,7 +33,7 @@ The Chromium smoke tests target local Google Chrome/Chromium through Playwright.
 ## Run The MCP Server
 
 ```bash
-uv run gui2-artifact-mcp
+uv run web-gui-mcp
 ```
 
 The server exposes:
@@ -48,9 +48,9 @@ The server exposes:
 
 It also serves:
 
-- `ui://gui2/runtime/v0.1.css`
-- `ui://gui2/runtime/v0.1.js`
-- `ui://gui2/artifacts/{artifact_id}`
+- `ui://web-gui/runtime/v0.1.css`
+- `ui://web-gui/runtime/v0.1.js`
+- `ui://web-gui/artifacts/{artifact_id}`
 
 ## Pattern Families
 
@@ -107,10 +107,10 @@ runtime executes.
 Add a local MCP server entry to your Codex config, using this repository as `cwd`:
 
 ```toml
-[mcp_servers.gui2_artifact_mcp]
+[mcp_servers.web_gui_mcp]
 command = "uv"
-args = ["run", "gui2-artifact-mcp"]
-cwd = "/Users/hzuo/src/agent-loom/gui-mcp"
+args = ["run", "web-gui-mcp"]
+cwd = "/Users/hzuo/src/web-gui-mcp"
 startup_timeout_sec = 20
 tool_timeout_sec = 60
 enabled = true
@@ -119,10 +119,10 @@ enabled = true
 Without `uv`:
 
 ```toml
-[mcp_servers.gui2_artifact_mcp]
+[mcp_servers.web_gui_mcp]
 command = "python"
-args = ["-m", "gui2_artifact_mcp.server"]
-cwd = "/Users/hzuo/src/agent-loom/gui-mcp"
+args = ["-m", "web_gui_mcp.server"]
+cwd = "/Users/hzuo/src/web-gui-mcp"
 startup_timeout_sec = 20
 tool_timeout_sec = 60
 enabled = true
@@ -154,7 +154,7 @@ enabled = true
 ```
 
 Use `delivery = "mcp_app"` or `delivery = "resource_only"` when you want a stored
-`ui://gui2/artifacts/{artifact_id}` URI instead of returning full HTML through the
+`ui://web-gui/artifacts/{artifact_id}` URI instead of returning full HTML through the
 tool response.
 
 ## Safety

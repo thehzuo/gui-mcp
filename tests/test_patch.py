@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
-from gui2_artifact_mcp.schema.tool_io import JsonPatchOp
-from gui2_artifact_mcp.util.json_patch import JsonPatchError, apply_json_patch
+from web_gui_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.schema.tool_io import JsonPatchOp
+from web_gui_mcp.util.json_patch import JsonPatchError, apply_json_patch
 
 
 def test_json_patch_add_and_remove() -> None:

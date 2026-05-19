@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 
-from gui2_artifact_mcp.render.artifact import render_artifact_to_html
-from gui2_artifact_mcp.schema.artifact import ArtifactSpec
-from gui2_artifact_mcp.schema.tool_io import RenderOptions
+from web_gui_mcp.render.artifact import render_artifact_to_html
+from web_gui_mcp.schema.artifact import ArtifactSpec
+from web_gui_mcp.schema.tool_io import RenderOptions
 
 from .conftest import example_paths
 
