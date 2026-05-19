@@ -1,0 +1,20 @@
+{
+  "v": "0.2",
+  "artifact": "annotated_flowchart",
+  "title": "Deploy Pipeline",
+  "sections": [
+    {
+      "kind": "inspector_diagram",
+      "title": "Pipeline",
+      "nodes": [
+        { "id": "build", "label": "Build", "description": "Compile and test assets.", "x": 18, "y": 50 },
+        { "id": "canary", "label": "Canary", "description": "Roll out to 5 percent.", "x": 50, "y": 50, "tone": "info" },
+        { "id": "rollback", "label": "Rollback", "description": "Trigger if health checks fail.", "x": 82, "y": 72, "tone": "danger" }
+      ],
+      "edges": [
+        { "from": "build", "to": "canary" },
+        { "from": "canary", "to": "rollback", "label": "failure path" }
+      ]
+    }
+  ]
+}

@@ -1,87 +1,169 @@
-# Agent Loom MVP
+# gui2-artifact-mcp-py
 
-Agent Loom is a local web control surface for long-horizon agentic execution. This implementation follows the MVP design spec at:
+`gui2-artifact-mcp-py` is a Python MCP server that validates compact `ArtifactSpec`
+JSON and renders deterministic HTML artifacts. It stores artifacts in memory and can
+return either full HTML or an MCP App-style `ui://` resource URI.
 
-`/Users/hzuo/Downloads/agent_loom_mvp_design_doc.md`
+The renderer supports the original safe static `v0.1` contract and an additive
+Chrome-first `v0.2` contract with richer Studio Sheet layouts, sandboxed prototypes,
+and deterministic local interactions.
 
-The durable core is:
-
-- Task Contract
-- State Ledger
-- Autonomy Policy
-- Verifier Interface
-- Model Capability Registry
-- Human Review Gates
-- Execution Dashboard
-
-## Project Structure
-
-```text
-backend/   FastAPI, SQLAlchemy, SQLite, scheduler, policy, verifiers
-frontend/  Vite, React, TypeScript, Tailwind, React Flow
-gui-mcp/   Existing scaffold left untouched
-```
-
-## Backend
-
-Use Python 3.11:
+## Setup
 
 ```bash
-cd /Users/hzuo/src/agent-loom/backend
-/opt/homebrew/bin/python3.11 -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+uv sync
+uv run pytest
+uv run pytest tests/test_chromium_smoke.py
+uv run python scripts/render_example.py examples/implementation_plan.json /tmp/gui2-plan.html
 ```
 
-The backend creates `agent_loom.db` automatically on startup.
-
-Run tests:
+Without `uv`:
 
 ```bash
-cd /Users/hzuo/src/agent-loom/backend
-/opt/homebrew/bin/python3.11 -m pytest
+python -m venv .venv
+. .venv/bin/activate
+pip install -e ".[dev]"
+pytest
+pytest tests/test_chromium_smoke.py
+python scripts/render_example.py examples/implementation_plan.json /tmp/gui2-plan.html
 ```
 
-Run the full MVP verification suite:
+The Chromium smoke tests target local Google Chrome/Chromium through Playwright.
+
+## Run The MCP Server
 
 ```bash
-cd /Users/hzuo/src/agent-loom
-bash scripts/test_all.sh
+uv run gui2-artifact-mcp
 ```
 
-This runs backend API/policy/scheduler/persistence tests, frontend render tests, and the frontend production build.
+The server exposes:
 
-## Frontend
+- `search_artifact_patterns`
+- `get_artifact_schema`
+- `render_artifact`
+- `patch_artifact`
+- `lint_artifact`
+- `export_artifact`
+- `list_artifacts`
 
-```bash
-cd /Users/hzuo/src/agent-loom/frontend
-npm install
-npm run dev
+It also serves:
+
+- `ui://gui2/runtime/v0.1.css`
+- `ui://gui2/runtime/v0.1.js`
+- `ui://gui2/artifacts/{artifact_id}`
+
+## Pattern Families
+
+`v0.1` patterns remain supported:
+
+- `implementation_plan`
+- `code_review_explainer`
+- `design_variant_grid`
+- `research_report`
+- `custom_editor`
+
+`v0.2` adds Chrome-first artifact families:
+
+- `approach_comparison`
+- `visual_direction_board`
+- `implementation_handoff`
+- `pr_review_workspace`
+- `pr_author_writeup`
+- `module_map`
+- `design_system_reference`
+- `component_variant_matrix`
+- `animation_tuner`
+- `clickable_flow`
+- `diagram_sheet`
+- `annotated_flowchart`
+- `slide_deck`
+- `feature_explainer`
+- `concept_explainer`
+- `status_report`
+- `incident_report`
+- `triage_board`
+- `feature_flag_editor`
+- `prompt_tuner`
+
+## v0.2 Interactions
+
+Use `v = "0.2"` when an artifact needs richer local behavior:
+
+- tabs, filters, collapsibles, copy/export buttons
+- sliders and replay controls
+- keyboard slide navigation
+- clickable diagram inspectors
+- drag/reorder boards
+- dependency-aware toggles
+- live prompt-template previews
+
+Prototype and editor surfaces use sandboxed `iframe srcdoc` documents with
+`sandbox="allow-scripts"`. The sandbox does not allow same-origin access or network
+requests. Model output remains declarative and escaped; only the known renderer
+runtime executes.
+
+## Connect To Codex
+
+Add a local MCP server entry to your Codex config, using this repository as `cwd`:
+
+```toml
+[mcp_servers.gui2_artifact_mcp]
+command = "uv"
+args = ["run", "gui2-artifact-mcp"]
+cwd = "/Users/hzuo/src/agent-loom/gui-mcp"
+startup_timeout_sec = 20
+tool_timeout_sec = 60
+enabled = true
 ```
 
-Open `http://127.0.0.1:5173`.
+Without `uv`:
 
-## Demo Flow
+```toml
+[mcp_servers.gui2_artifact_mcp]
+command = "python"
+args = ["-m", "gui2_artifact_mcp.server"]
+cwd = "/Users/hzuo/src/agent-loom/gui-mcp"
+startup_timeout_sec = 20
+tool_timeout_sec = 60
+enabled = true
+```
 
-1. Create a run.
-2. Save the Task Contract.
-3. Generate a template DAG.
-4. Validate and approve the plan.
-5. Start execution from the dashboard.
-6. Approve the task-level review gate.
-7. Watch the dashboard update through SSE and inspect the ledger timeline.
+## Render An Artifact
 
-## Local Command Execution
-
-The MVP includes a trusted local `CommandExecutor`. A task can set:
+`render_artifact` accepts a compact semantic spec:
 
 ```json
 {
-  "executor_type": "command",
-  "tool_refs": ["command_executor"],
-  "executor_config_json": {
-    "command": "printf loom",
-    "cwd": "/Users/hzuo/src/agent-loom"
-  }
+  "spec": {
+    "v": "0.2",
+    "artifact": "feature_explainer",
+    "title": "Rate Limiting Explainer",
+    "sections": [
+      {
+        "kind": "tabs",
+        "title": "How it works",
+        "tabs": [
+          { "id": "tldr", "label": "TL;DR", "body": "Requests are keyed by account and route." },
+          { "id": "path", "label": "Path", "body": "Middleware increments usage and emits headers." }
+        ]
+      }
+    ]
+  },
+  "delivery": "static_html"
 }
 ```
 
-Command output, stderr, exit code, and duration are recorded in `TaskExecution`.
+Use `delivery = "mcp_app"` or `delivery = "resource_only"` when you want a stored
+`ui://gui2/artifacts/{artifact_id}` URI instead of returning full HTML through the
+tool response.
+
+## Safety
+
+- All model-provided text is HTML-escaped.
+- `html_preview` is escaped text by default.
+- v0.2 prototype/editor sections use sandboxed iframe `srcdoc` documents.
+- Generated interactions use deterministic runtime code; model-generated JavaScript is not allowed.
+- JSON state embedded in `<script type="application/json">` escapes `<`, `>`, `&`,
+  U+2028, and U+2029 to prevent `</script>` breakout.
+- The renderer does not execute or copy arbitrary model-generated JavaScript.
+- CSS, HTML structure, and optional local runtime behavior are deterministic.

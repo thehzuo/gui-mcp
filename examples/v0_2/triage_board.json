@@ -1,0 +1,18 @@
+{
+  "v": "0.2",
+  "artifact": "triage_board",
+  "title": "Cycle 14 Triage",
+  "sections": [
+    {
+      "kind": "board",
+      "title": "Board",
+      "columns": [
+        { "id": "now", "title": "Now", "cards": [{ "id": "api", "title": "Stabilize API", "body": "Fix flaky run endpoint.", "tone": "danger" }] },
+        { "id": "next", "title": "Next", "cards": [{ "id": "docs", "title": "Docs refresh", "body": "Update setup instructions.", "tone": "info" }] },
+        { "id": "later", "title": "Later", "cards": [{ "id": "theme", "title": "Theme polish", "body": "Refine secondary states." }] },
+        { "id": "cut", "title": "Cut", "cards": [] }
+      ]
+    }
+  ],
+  "interactions": [{ "kind": "drag_reorder" }]
+}

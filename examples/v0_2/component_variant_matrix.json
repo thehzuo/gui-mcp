@@ -1,0 +1,17 @@
+{
+  "v": "0.2",
+  "artifact": "component_variant_matrix",
+  "title": "Button Variant Matrix",
+  "sections": [
+    {
+      "kind": "component_matrix",
+      "title": "Button States",
+      "component": "Button",
+      "variants": [
+        { "id": "primary-default", "name": "Primary", "state": "default", "intent": "submit", "selected": true },
+        { "id": "primary-loading", "name": "Primary", "state": "loading", "intent": "submit" },
+        { "id": "secondary-danger", "name": "Secondary", "state": "hover", "intent": "destructive" }
+      ]
+    }
+  ]
+}

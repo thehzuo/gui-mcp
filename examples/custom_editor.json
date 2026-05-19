@@ -1,0 +1,77 @@
+{
+  "v": "0.1",
+  "artifact": "custom_editor",
+  "title": "Release Triage Editor",
+  "subtitle": "A lightweight structured surface for deciding release readiness",
+  "audience": "team",
+  "density": "compact",
+  "theme": "technical",
+  "sections": [
+    {
+      "kind": "summary",
+      "items": [
+        { "label": "Open items", "value": "3", "tone": "warning" },
+        { "label": "Release state", "value": "Reviewing", "tone": "info" }
+      ]
+    },
+    {
+      "kind": "editable_table",
+      "title": "Checks",
+      "columns": [
+        { "key": "name", "label": "Check", "input": "text" },
+        { "key": "owner", "label": "Owner", "input": "text" },
+        { "key": "risk", "label": "Risk", "input": "select", "options": ["low", "medium", "high"] },
+        { "key": "done", "label": "Done", "input": "checkbox" }
+      ],
+      "rows": [
+        { "name": "Schema tests", "owner": "Agent", "risk": "low", "done": true },
+        { "name": "Security tests", "owner": "Agent", "risk": "high", "done": false },
+        { "name": "README", "owner": "Agent", "risk": "medium", "done": false }
+      ]
+    },
+    {
+      "kind": "board",
+      "title": "Work Board",
+      "columns": [
+        {
+          "id": "todo",
+          "title": "Todo",
+          "cards": [
+            { "id": "docs", "title": "Codex setup docs", "body": "Show uv and Python config options.", "tone": "info" }
+          ]
+        },
+        {
+          "id": "doing",
+          "title": "Doing",
+          "cards": [
+            { "id": "tests", "title": "Renderer tests", "body": "Cover escaping and script state.", "tone": "warning" }
+          ]
+        },
+        {
+          "id": "done",
+          "title": "Done",
+          "cards": [
+            { "id": "schema", "title": "Pydantic schema", "body": "All section kinds are modeled.", "tone": "good" }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "checklist",
+      "title": "Release Gate",
+      "items": [
+        { "text": "Render all examples", "priority": "high" },
+        { "text": "Run pytest", "priority": "high" },
+        { "text": "Run ruff", "priority": "medium" }
+      ]
+    }
+  ],
+  "actions": [
+    { "kind": "copy_as_json", "label": "Copy JSON" },
+    {
+      "kind": "copy_as_markdown",
+      "label": "Copy release note",
+      "template": "Release triage is ready for final validation."
+    }
+  ]
+}

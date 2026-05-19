@@ -1,0 +1,35 @@
+{
+  "v": "0.2",
+  "artifact": "pr_review_workspace",
+  "title": "PR Review Workspace",
+  "audience": "reviewer",
+  "sections": [
+    {
+      "kind": "tabs",
+      "title": "Review Packet",
+      "tabs": [
+        { "id": "findings", "label": "Findings", "badge": "2", "body": "P1: escaping regression. P2: missing mobile check." },
+        { "id": "diff", "label": "Diff", "body": "Focus on render/sections.py and runtime.py." },
+        { "id": "tests", "label": "Tests", "body": "Add coverage for sandbox srcdoc and copied payloads." }
+      ]
+    },
+    {
+      "kind": "diff_review",
+      "title": "Risky Hunk",
+      "files": [
+        {
+          "path": "render/runtime.py",
+          "hunks": [
+            {
+              "lines": [
+                { "type": "context", "old_line": 1, "new_line": 1, "text": "const copyText = async (text) => {" },
+                { "type": "add", "new_line": 2, "text": "await navigator.clipboard.writeText(text)" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "interactions": [{ "kind": "tab" }]
+}

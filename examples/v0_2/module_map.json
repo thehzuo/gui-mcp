@@ -1,0 +1,21 @@
+{
+  "v": "0.2",
+  "artifact": "module_map",
+  "title": "Auth Module Map",
+  "sections": [
+    {
+      "kind": "inspector_diagram",
+      "title": "Request Path",
+      "nodes": [
+        { "id": "router", "label": "Router", "description": "Receives the request and selects auth middleware.", "x": 18, "y": 35 },
+        { "id": "session", "label": "Session", "description": "Loads user session and refresh state.", "x": 50, "y": 55, "tone": "info" },
+        { "id": "policy", "label": "Policy", "description": "Checks route-level authorization.", "x": 82, "y": 35, "tone": "warning" }
+      ],
+      "edges": [
+        { "from": "router", "to": "session" },
+        { "from": "session", "to": "policy" }
+      ]
+    }
+  ],
+  "interactions": [{ "kind": "inspect_node" }]
+}
